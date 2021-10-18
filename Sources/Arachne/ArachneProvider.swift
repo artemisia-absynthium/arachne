@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 /// Use `ArachneProvider` to make requests to a specific `ArachneService`.
-public class ArachneProvider<T: ArachneService> {
+open class ArachneProvider<T: ArachneService> {
 
     private let urlSession: URLSession
     private let plugins: [ArachnePlugin]?
