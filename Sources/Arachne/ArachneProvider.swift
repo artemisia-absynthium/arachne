@@ -124,7 +124,7 @@ open class ArachneProvider<T: ArachneService> {
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds. Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
-    func buildRequest(target: T, timeoutInterval: Double?) throws -> URLRequest {
+    public func buildRequest(target: T, timeoutInterval: Double?) throws -> URLRequest {
         let url = try URLUtil.composedUrl(for: target)
         return URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
     }
