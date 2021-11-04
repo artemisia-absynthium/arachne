@@ -105,7 +105,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Download an image")
 
         let provider = ArachneProvider<Github>()
-        cancellable = provider.download(.avatar(id), fileName: "\(id).png")
+        cancellable = provider.download(.avatar(id))
             .sink { _ in } receiveValue: { url, response in
                 let fileExists = FileManager.default.fileExists(atPath: url.path)
                 XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
@@ -155,7 +155,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
 
         let provider = ArachneProvider<Github>()
-        cancellable = provider.download(.notFound, fileName: "notFound.png")
+        cancellable = provider.download(.notFound)
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
