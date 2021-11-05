@@ -33,16 +33,10 @@ open class ArachneProvider<T: ArachneService> {
     /// Make a request to an endpoint defined in an `ArachneService`.
     /// - Parameters:
     ///   - target: An endpoint.
-    ///   - responseType: Type of your expected response, it must be `Decodable`.
-    ///   - decoder: Optional custom decoder for when the standard one doesn't suit. Default value: `JSONDecoder()`.
     ///   - timeoutInterval: Optional timeout interval in seconds. Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the default `URLSession.default`.
     /// - Returns: A publisher publishing a value of type `responseType` or an `Error` if anything goes wrong in the pipeline.
-    open func request<ResponseType: Decodable>(_ target: T,
-                                          responseType: ResponseType.Type,
-                                          decoder: JSONDecoder = JSONDecoder(),
-                                          timeoutInterval: Double? = nil,
-                                          session: URLSession? = nil) -> AnyPublisher<ResponseType, Error> {
+    open func request(_ target: T, timeoutInterval: Double? = nil, session: URLSession? = nil) -> AnyPublisher<Data, Error> {
         let request: URLRequest
         do {
             request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
@@ -66,7 +60,6 @@ open class ArachneProvider<T: ArachneService> {
                 self.plugins?.forEach { $0.handle(response: response, data: data) }
                 return data
             }
-            .decode(type: responseType, decoder: decoder)
             .mapError { error in
                 self.plugins?.forEach { $0.handle(error: error, output: nil) }
                 return error

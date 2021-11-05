@@ -10,7 +10,8 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Download my Github user info")
 
         let provider = ArachneProvider<Github>()
-        cancellable = provider.request(.userProfile("artemisia-absynthium"), responseType: GithubUser.self)
+        cancellable = provider.request(.userProfile("artemisia-absynthium"))
+            .decode(type: GithubUser.self, decoder: JSONDecoder())
             .sink { _ in } receiveValue: { user in
                 XCTAssertEqual(user, GithubUser(login: "artemisia-absynthium"))
                 expectation.fulfill()
@@ -27,7 +28,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Service URL is malformed")
 
         let provider = ArachneProvider<Dummy>()
-        cancellable = provider.request(.malformedUrl, responseType: [String : String].self)
+        cancellable = provider.request(.malformedUrl)
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
@@ -51,7 +52,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Endpoint path is malformed")
 
         let provider = ArachneProvider<Dummy>()
-        cancellable = provider.request(.nilUrl, responseType: [String : String].self)
+        cancellable = provider.request(.nilUrl)
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
@@ -122,7 +123,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
 
         let provider = ArachneProvider<Github>()
-        cancellable = provider.request(.notFound, responseType: [String : String].self)
+        cancellable = provider.request(.notFound)
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
@@ -197,7 +198,8 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Request is modified by the signingPublisher and returns a valid user")
 
         let provider = ArachneProvider<Github>(signingPublisher: signingPublisher)
-        cancellable = provider.request(.userProfile(""), responseType: GithubUser.self)
+        cancellable = provider.request(.userProfile(""))
+            .decode(type: GithubUser.self, decoder: JSONDecoder())
             .sink { _ in } receiveValue: { user in
                 XCTAssertEqual(user, GithubUser(login: "artemisia-absynthium"))
                 expectation.fulfill()
