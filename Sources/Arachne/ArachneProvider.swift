@@ -103,7 +103,6 @@ open class ArachneProvider<T: ArachneService> {
                 self.plugins?.forEach { $0.handle(error: error, output: nil) }
                 return error
             }
-            .receive(on: RunLoop.main)
             .eraseToAnyPublisher()
 
     }
