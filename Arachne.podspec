@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Arachne'
-  s.version          = '0.1.8'
+  s.version          = '0.1.9'
   s.summary          = 'Networking layer for Swift+Combine apps.'
   s.homepage         = 'https://github.com/artemisia-absynthium/arachne'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
