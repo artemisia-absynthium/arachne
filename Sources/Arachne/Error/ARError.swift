@@ -14,7 +14,14 @@ public enum ARError: Error {
     case malformedUrl(String)
 
     /// Error thrown if the response status code is not acceptable
-    case unacceptableStatusCode(Int?, Any)
+    ///
+    /// The fields returned in the error are:
+    ///  - statusCode: The optional HTTP status code returned
+    ///  - response: The optional response returned from the server
+    ///  - responseContent: The response content, the response type can be
+    ///    - `Data`, containing the response body, in case you used `ArachneProvider.request(_:timeoutInterval:session:)`
+    ///    - `URL`, the temporary downloaded file URL, in case you used `ArachneProvider.download(_:timeoutInterval:session:)`
+    case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: Any)
 
 }
 
@@ -39,7 +46,7 @@ extension ARError: LocalizedError {
         switch self {
         case .malformedUrl(let url):
             return "Malformed URL: \(url)"
-        case .unacceptableStatusCode(let code, _):
+        case .unacceptableStatusCode(let code, _, _):
             return "Unacceptable status code: \(String(describing: code))"
         }
     }

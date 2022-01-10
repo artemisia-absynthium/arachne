@@ -131,11 +131,12 @@ final class ArachneTests: XCTestCase {
                     switch castedError {
                     case .malformedUrl:
                         XCTFail("Error shouldn't be malformed URL")
-                    case .unacceptableStatusCode(let statusCode, let data):
-                        let expectedError = ARError.unacceptableStatusCode(404, Data())
+                    case .unacceptableStatusCode(let statusCode, let response, let data):
+                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404, response: HTTPURLResponse(), responseContent: Data())
                         XCTAssertNotNil(castedError)
                         XCTAssertEqual(castedError?.errorCode, expectedError.errorCode)
                         XCTAssertEqual(statusCode, 404)
+                        XCTAssertNotNil(response)
                         XCTAssertNotNil(data)
                         XCTAssertEqual(castedError?.localizedDescription, expectedError.localizedDescription)
                         expectation.fulfill()
@@ -164,11 +165,12 @@ final class ArachneTests: XCTestCase {
                     switch castedError {
                     case .malformedUrl:
                         XCTFail("Error shouldn't be malformed URL")
-                    case .unacceptableStatusCode(let statusCode, let data):
-                        let expectedError = ARError.unacceptableStatusCode(404, Data())
+                    case .unacceptableStatusCode(let statusCode, let response, let data):
+                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404, response: HTTPURLResponse(), responseContent: Data())
                         XCTAssertNotNil(castedError)
                         XCTAssertEqual(castedError?.errorCode, expectedError.errorCode)
                         XCTAssertEqual(statusCode, 404)
+                        XCTAssertNotNil(response)
                         XCTAssertNotNil(data)
                         XCTAssertEqual(castedError?.localizedDescription, expectedError.localizedDescription)
                         expectation.fulfill()

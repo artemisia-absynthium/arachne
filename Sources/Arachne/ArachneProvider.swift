@@ -55,7 +55,9 @@ open class ArachneProvider<T: ArachneService> {
             }
             .tryMap { data, response in
                 guard let httpResponse = response as? HTTPURLResponse, target.validCodes.contains(httpResponse.statusCode) else {
-                    throw ARError.unacceptableStatusCode((response as? HTTPURLResponse)?.statusCode, data)
+                    throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
+                                                         response: response as? HTTPURLResponse,
+                                                         responseContent: data)
                 }
                 self.plugins?.forEach { $0.handle(response: response, data: data) }
                 return data
@@ -94,7 +96,9 @@ open class ArachneProvider<T: ArachneService> {
             }
             .tryMap { url, response in
                 guard let httpResponse = response as? HTTPURLResponse, target.validCodes.contains(httpResponse.statusCode) else {
-                    throw ARError.unacceptableStatusCode((response as? HTTPURLResponse)?.statusCode, url)
+                    throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
+                                                         response: response as? HTTPURLResponse,
+                                                         responseContent: url)
                 }
                 self.plugins?.forEach { $0.handle(response: response, data: url) }
                 return (url, response)
