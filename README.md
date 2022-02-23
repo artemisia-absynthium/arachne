@@ -1,41 +1,12 @@
 # Arachne
 
-Arachne is a networking layer for Swift+[Combine](https://developer.apple.com/documentation/combine) apps that provides an opinionated abstraction to hide some common boilerplate code.
+Arachne is a lightweight, minimalistic, zero dependencies networking layer for apps using [Combine](https://developer.apple.com/documentation/combine) developed in Swift, that provides an opinionated abstraction layer to remove boilerplate code.
 
 Arachne aims to expose a Combine [Publisher](https://developer.apple.com/documentation/combine/publisher) even for `URLSession` tasks that don't have one yet.
 
-Currently supported tasks are
-* `dataTask`
-* `downloadTask`
+This library's design was inspired by [Moya](https://github.com/Moya/Moya), but differently from Moya, Arachne uses only the standard [Foundation framework](https://developer.apple.com/documentation/foundation/url_loading_system) (e.g. `URLSession`).
 
-Other tasks are still WIP 🚧
-
-This library's design was inspired by [Moya](https://github.com/Moya/Moya), it differs from Moya in the fact that Arachne uses directly [Foundation's URLSession](https://developer.apple.com/documentation/foundation/url_loading_system) APIs.
-
-This makes Arachne really lightweight and minimalist and suitable for newer apps that make use of Apple's newest frameworks.
-
-## Installation
-
-### Swift Package Manager
-
-_Note: Instructions below are for using SwiftPM without the Xcode UI. It's the easiest to go to your Project Settings -> Swift Packages and add Arachne from there._
-
-To integrate using Apple's Swift package manager, without using Xcode UI, add the following as a dependency to your Package.swift:
-
-```swift
-.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.2.0"))
-```
-and then specify "Arachne" as a dependency of the Target in which you wish to use it.
-
-### Cocoapods
-
-_Note: If you can choose, please use Swift Package Manager, support for Cocoapods may be discontinued in future versions of this library_
-
-Add the following entry to your `Podfile`:
-
-```ruby
-pod 'Arachne'
-```
+This makes Arachne suitable for recently created or migrated apps that make use of Apple's frameworks, instead of third party ones, like Alamofire or RxSwift.
 
 ## Usage
 
@@ -112,7 +83,7 @@ extension MyAPIService: ArachneService {
 }
 ```
 
-Then you could use them for example like this (the `ArachneProvider` is in the `WebRepository` for simplicity, you are encouraged to use an `ArachneProvider` for each service and abstract your providers into a separate class).
+Then you can use them like this
 
 ```swift
 import Combine
@@ -122,7 +93,7 @@ struct Info: Codable {
     let name: String
 }
 
-class MyWebRepository {
+class MyApiClient {
     private let provider = ArachneProvider<MyAPIService>()
 
     func loadInfo() -> AnyPublisher<Info, Error> {
@@ -133,13 +104,13 @@ class MyWebRepository {
 }
 
 class MyInteractor: ObservableObject {
-    private let webRepository = MyWebRepository()
+    private let apiClient = MyApiClient()
     private var cancellables = Set<AnyCancellable>()
 
     @Published var info: Info?
 
     func getInfo() {
-        webRepository.loadInfo()
+        apiClient.loadInfo()
             .sink { completion in
                 switch completion {
                 case .finished:
@@ -166,15 +137,45 @@ struct MyView: View {
 }
 ```
 
+## Installation
+
+### Swift Package Manager
+
+#### Using Xcode UI
+
+Go to your Project Settings -> Swift Packages and add Arachne from there.
+
+#### Not using Xcode UI
+
+Add the following as a dependency to your `Package.swift`:
+
+```swift
+.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.2.0"))
+```
+and then specify "Arachne" as a dependency of the Target in which you wish to use it.
+
+### Cocoapods
+
+_Note: If you can choose, please use Swift Package Manager, support for Cocoapods may be discontinued in future versions of this library_
+
+Add the following entry to your `Podfile`:
+
+```ruby
+pod 'Arachne'
+```
+
 ## Roadmap
 
-Next steps will be to add
+Currently supported tasks are
+* `dataTask`
+* `downloadTask`
 
-## Contributing
+Next step will be to add the remaining tasks 🚧
 
-State if you are open to contributions and what your requirements are for accepting them.
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Contributing
+
+Contributions are welcome!
+No special steps are required to get up and running developing this project, just clone and open in Xcode, the only requirement is for each PR to have proper unit tests and that all tests pass.
 
 ## License
 
@@ -183,3 +184,9 @@ This project is released under the [MIT License](https://github.com/artemisia-ab
 ## Project status
 
 This project is currently under active development.
+
+## Why Arachne?
+
+Thinking about networking my mind immediately went to the best "networkers" in nature: spiders.
+
+Since I come from classical studies background I liked to use the Greek word for spider: Arachne (ᾰ̓ρᾰ́χνη). Arachne is also the name of the protagonist, a very talented weaver, of [a tale in Greek mythology](https://en.wikipedia.org/wiki/Arachne) and I felt it was really appropriate.
