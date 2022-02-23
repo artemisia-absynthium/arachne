@@ -6,7 +6,7 @@ Arachne aims to expose a Combine [Publisher](https://developer.apple.com/documen
 
 This library's design was inspired by [Moya](https://github.com/Moya/Moya), but differently from Moya, Arachne uses only the standard [Foundation framework](https://developer.apple.com/documentation/foundation/url_loading_system) (e.g. `URLSession`).
 
-This makes Arachne suitable for recently created or migrated apps that make use of Apple's frameworks, instead of third party ones, like Alamofire or RxSwift.
+This makes Arachne suitable for recently created or migrated apps that make use of Apple's frameworks, instead of third party ones, like [Alamofire](https://github.com/Alamofire/Alamofire) or [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 ## Usage
 
