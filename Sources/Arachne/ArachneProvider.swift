@@ -113,8 +113,6 @@ open class ArachneProvider<T: ArachneService> {
 
     }
 
-    // MARK: - Internal methods
-
     /// Builds a `URLRequest` from an `ArachneService` endpoint definition.
     /// - Parameters:
     ///   - target: An endpoint.
@@ -137,6 +135,8 @@ open class ArachneProvider<T: ArachneService> {
         }
         return pub
     }
+
+    // MARK: - Internal methods
 
     private func extractOutput(from error: Error) -> Any? {
         var output: Any? = nil
