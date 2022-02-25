@@ -187,6 +187,48 @@ final class ArachneTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
+    func testPluginHasErrorResponse() throws {
+        struct TestPlugin: ArachnePlugin {
+            let errorExpectation: XCTestExpectation
+            let requestExpectation: XCTestExpectation
+
+            func handle(error: Error, output: Any?) {
+                XCTAssertTrue(error is ARError)
+                switch error as? ARError {
+                case .some(.unacceptableStatusCode(let statusCode, _, _)):
+                    XCTAssertEqual(statusCode, 404)
+                case .none:
+                    XCTFail()
+                case .some(.malformedUrl(_)):
+                    XCTFail()
+                }
+                XCTAssertNotNil(output)
+                errorExpectation.fulfill()
+            }
+
+            func handle(request: URLRequest) {
+                XCTAssertEqual(request.url?.absoluteString, "\(Github.notFound.baseUrl)\(Github.notFound.path)")
+                requestExpectation.fulfill()
+            }
+
+            func handle(response: URLResponse, data: Any) {
+                XCTFail("Should not have been called")
+            }
+        }
+
+        let errorExpectation = XCTestExpectation(description: "The plugin has correct error response data")
+        let requestExpectation = XCTestExpectation(description: "The plugin handles the correct request")
+        let plugin = TestPlugin(errorExpectation: errorExpectation, requestExpectation: requestExpectation)
+
+        let provider = ArachneProvider<Github>(plugins: [plugin])
+        cancellable = provider.request(.notFound)
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+                XCTFail("Shouldn't receive any value, status code should be unacceptable")
+            })
+
+        wait(for: [errorExpectation, requestExpectation], timeout: 5)
+    }
+
     func testSigningPublisher() throws {
         let signingPublisher: (Github, URLRequest) -> AnyPublisher<URLRequest, URLError> = { _, request in
             var mutableRequest = request

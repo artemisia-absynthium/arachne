@@ -63,7 +63,8 @@ open class ArachneProvider<T: ArachneService> {
                 return data
             }
             .mapError { error in
-                self.plugins?.forEach { $0.handle(error: error, output: nil) }
+                let output = self.extractOutput(from: error)
+                self.plugins?.forEach { $0.handle(error: error, output: output) }
                 return error
             }
             .receive(on: DispatchQueue.main)
@@ -104,7 +105,8 @@ open class ArachneProvider<T: ArachneService> {
                 return (url, response)
             }
             .mapError { error in
-                self.plugins?.forEach { $0.handle(error: error, output: nil) }
+                let output = self.extractOutput(from: error)
+                self.plugins?.forEach { $0.handle(error: error, output: output) }
                 return error
             }
             .eraseToAnyPublisher()
@@ -134,6 +136,14 @@ open class ArachneProvider<T: ArachneService> {
                 .eraseToAnyPublisher()
         }
         return pub
+    }
+
+    private func extractOutput(from error: Error) -> Any? {
+        var output: Any? = nil
+        if let error = error as? ARError, case .unacceptableStatusCode(_, _, let responseContent) = error {
+            output = responseContent
+        }
+        return output
     }
 
 }
