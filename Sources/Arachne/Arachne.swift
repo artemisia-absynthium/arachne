@@ -3,29 +3,38 @@ import Foundation
 /// You typically implement this protocol in an `enum` to define an API having a specific `baseURL` and define endpoints as `case`s of this `enum`.
 ///
 /// For example:
-/// ```
-/// enum PetStore {
-///     case pets(limit: Int)
-///     case pet(id: String)
+/// ```swift
+/// import Foundation
+///
+/// enum MyAPIService {
+///     case info
+///     case userProfile(username: String)
+///     case postEndpoint(body: MyCodableObject, limit: Int)
 /// }
 ///
-/// extension PetStore: ArachneService {
+/// extension MyAPIService: ArachneService {
+///
 ///     var baseUrl: String {
-///         return "https://www.myserver.io/v1"
+///         switch self {
+///         default:
+///             return "https://myapiservice.com"
+///         }
 ///     }
 ///
 ///     var path: String {
 ///         switch self {
-///         case .pets:
-///             return "/pets"
-///         case .pet(let id):
-///             return "/pets/\(id)"
+///         case .info:
+///             return "/info"
+///         case .userProfile(let username):
+///             return "/users/\(username)"
+///         case .postEndpoint:
+///             return "/postendpoint"
 ///         }
 ///     }
 ///
 ///     var queryStringItems: [URLQueryItem]? {
 ///         switch self {
-///         case .pets(let limit):
+///         case .postEndpoint(_, let limit):
 ///             return [
 ///                 URLQueryItem(name: "limit", value: "\(limit)")
 ///             ]
@@ -35,20 +44,32 @@ import Foundation
 ///     }
 ///
 ///     var method: HttpMethod {
-///         return .get
+///         switch self {
+///         case .postEndpoint:
+///             return .post
+///         default:
+///             return .get
+///         }
 ///     }
 ///
 ///     var body: Data? {
-///         return nil
+///         switch self{
+///         case .postEndpoint(let myCodableObject, _):
+///             return try? JSONEncoder().encode(myCodableObject)
+///         default:
+///             return nil
+///         }
 ///     }
 ///
 ///     var headers: [String : String]? {
-///         return ["Accept" : "application/json"]
+///         switch self {
+///         case .postEndpoint:
+///             return nil
+///         default:
+///             return ["Accept" : "application/json"]
+///         }
 ///     }
 ///
-///     var validCodes: [Int] {
-///         return [200]
-///     }
 /// }
 /// ```
 public protocol ArachneService {

@@ -18,8 +18,8 @@ import Arachne
 
 enum MyAPIService {
     case info
-    case userProfile(String)
-    case postEndpoint(MyCodableObject)
+    case userProfile(username: String)
+    case postEndpoint(body: MyCodableObject, limit: Int)
 }
 
 extension MyAPIService: ArachneService {
@@ -44,9 +44,9 @@ extension MyAPIService: ArachneService {
 
     var queryStringItems: [URLQueryItem]? {
         switch self {
-        case .postEndpoint:
+        case .postEndpoint(_, let limit):
             return [
-                URLQueryItem(name: "v", value: "1")
+                URLQueryItem(name: "limit", value: "\(limit)")
             ]
         default:
             return nil
@@ -64,7 +64,7 @@ extension MyAPIService: ArachneService {
 
     var body: Data? {
         switch self{
-        case .postEndpoint(let myCodableObject):
+        case .postEndpoint(let myCodableObject, _):
             return try? JSONEncoder().encode(myCodableObject)
         default:
             return nil
