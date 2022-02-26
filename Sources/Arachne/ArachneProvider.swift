@@ -10,7 +10,6 @@ import Combine
 
 /// Use `ArachneProvider` to make requests to a specific `ArachneService`.
 open class ArachneProvider<T: ArachneService> {
-
     private let urlSession: URLSession
     private let plugins: [ArachnePlugin]?
     private let signingPublisher: ((T, URLRequest) -> AnyPublisher<URLRequest, URLError>)?
@@ -21,10 +20,11 @@ open class ArachneProvider<T: ArachneService> {
     /// - Parameters:
     ///   - urlSession: Your `URLSession`, uses default if none is passed.
     ///   - plugins: An optional array of `ArachnePlugin`s.
-    ///   - signingPublisher: An optional `(T, URLRequest) -> AnyPublisher<URLRequest, URLError>` publisher that outputs the request received as input signed
+    ///   - signingPublisher: An optional `(T, URLRequest) -> AnyPublisher<URLRequest, URLError>`
+    ///   publisher that outputs the request received as input signed
     public init(urlSession: URLSession = URLSession(configuration: .default),
-         plugins: [ArachnePlugin]? = nil,
-         signingPublisher: ((T, URLRequest) -> AnyPublisher<URLRequest, URLError>)? = nil) {
+                plugins: [ArachnePlugin]? = nil,
+                signingPublisher: ((T, URLRequest) -> AnyPublisher<URLRequest, URLError>)? = nil) {
         self.urlSession = urlSession
         self.plugins = plugins
         self.signingPublisher = signingPublisher
@@ -33,10 +33,14 @@ open class ArachneProvider<T: ArachneService> {
     /// Make a request to an endpoint defined in an `ArachneService`.
     /// - Parameters:
     ///   - target: An endpoint.
-    ///   - timeoutInterval: Optional timeout interval in seconds. Default value is the default of `URLRequest`: 60 seconds.
+    ///   - timeoutInterval: Optional timeout interval in seconds.
+    ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the default `URLSession.default`.
-    /// - Returns: A publisher publishing a value of type `responseType` or an `Error` if anything goes wrong in the pipeline.
-    open func request(_ target: T, timeoutInterval: Double? = nil, session: URLSession? = nil) -> AnyPublisher<Data, Error> {
+    /// - Returns: A publisher publishing a value of type `responseType`
+    /// or an `Error` if anything goes wrong in the pipeline.
+    open func request(_ target: T,
+                      timeoutInterval: Double? = nil,
+                      session: URLSession? = nil) -> AnyPublisher<Data, Error> {
         let request: URLRequest
         do {
             request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
@@ -54,7 +58,8 @@ open class ArachneProvider<T: ArachneService> {
                 }
             }
             .tryMap { data, response in
-                guard let httpResponse = response as? HTTPURLResponse, target.validCodes.contains(httpResponse.statusCode) else {
+                guard let httpResponse = response as? HTTPURLResponse,
+                      target.validCodes.contains(httpResponse.statusCode) else {
                     throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
                                                          response: response as? HTTPURLResponse,
                                                          responseContent: data)
@@ -72,13 +77,17 @@ open class ArachneProvider<T: ArachneService> {
     }
 
     /// Download a resource from an endpoint defined in an `ArachneService`.
-    /// The downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
+    /// The downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
+    /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds. Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the default `URLSession.default`.
-    /// - Returns: A publisher publishing a tuple containing the temporary URL of the downloaded file and the `URLResponse` or an `Error` if anything goes wrong in the pipeline.
-    open func download(_ target: T, timeoutInterval: Double? = nil, session: URLSession? = nil) -> AnyPublisher<(URL, URLResponse), Error> {
+    /// - Returns: A publisher publishing a tuple containing the temporary URL of the downloaded file
+    /// and the `URLResponse` or an `Error` if anything goes wrong in the pipeline.
+    open func download(_ target: T,
+                       timeoutInterval: Double? = nil,
+                       session: URLSession? = nil) -> AnyPublisher<(URL, URLResponse), Error> {
         let request: URLRequest
         do {
             request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
@@ -96,7 +105,8 @@ open class ArachneProvider<T: ArachneService> {
                 }
             }
             .tryMap { url, response in
-                guard let httpResponse = response as? HTTPURLResponse, target.validCodes.contains(httpResponse.statusCode) else {
+                guard let httpResponse = response as? HTTPURLResponse,
+                      target.validCodes.contains(httpResponse.statusCode) else {
                     throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
                                                          response: response as? HTTPURLResponse,
                                                          responseContent: url)
@@ -110,7 +120,6 @@ open class ArachneProvider<T: ArachneService> {
                 return error
             }
             .eraseToAnyPublisher()
-
     }
 
     /// Builds a `URLRequest` from an `ArachneService` endpoint definition.
@@ -139,11 +148,10 @@ open class ArachneProvider<T: ArachneService> {
     // MARK: - Internal methods
 
     private func extractOutput(from error: Error) -> Any? {
-        var output: Any? = nil
+        var output: Any?
         if let error = error as? ARError, case .unacceptableStatusCode(_, _, let responseContent) = error {
             output = responseContent
         }
         return output
     }
-
 }

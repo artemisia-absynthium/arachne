@@ -1,6 +1,7 @@
 import Foundation
 
-/// You typically implement this protocol in an `enum` to define an API having a specific `baseURL` and define endpoints as `case`s of this `enum`.
+/// You typically implement this protocol in an `enum` to define an API
+/// having a specific `baseURL` and define endpoints as `case`s of this `enum`.
 ///
 /// For example:
 /// ```swift
@@ -13,7 +14,6 @@ import Foundation
 /// }
 ///
 /// extension MyAPIService: ArachneService {
-///
 ///     var baseUrl: String {
 ///         switch self {
 ///         default:
@@ -61,19 +61,17 @@ import Foundation
 ///         }
 ///     }
 ///
-///     var headers: [String : String]? {
+///     var headers: [String: String]? {
 ///         switch self {
 ///         case .postEndpoint:
 ///             return nil
 ///         default:
-///             return ["Accept" : "application/json"]
+///             return ["Accept": "application/json"]
 ///         }
 ///     }
-///
 /// }
 /// ```
 public protocol ArachneService {
-
     /// The complete base URL, example: `"https://www.myserver.io/v1"`
     var baseUrl: String { get }
 
@@ -90,17 +88,10 @@ public protocol ArachneService {
     var body: Data? { get }
 
     /// Optional request headers
-    var headers: [String : String]? { get }
+    var headers: [String: String]? { get }
 
     /// HTTP response status codes that you consider valid, default value is [200...299].
     var validCodes: [Int] { get }
-
-}
-
-public extension ArachneService {
-    var validCodes: [Int] {
-        return Array(200...299)
-    }
 }
 
 /// HTTP methods enumeration
@@ -110,4 +101,10 @@ public enum HttpMethod: String {
     case put = "PUT"
     case delete = "DELETE"
     case head = "HEAD"
+}
+
+public extension ArachneService {
+    var validCodes: [Int] {
+        return Array(200...299)
+    }
 }

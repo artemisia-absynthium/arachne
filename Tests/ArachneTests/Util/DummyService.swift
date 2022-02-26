@@ -16,7 +16,6 @@ enum Dummy {
 }
 
 extension Dummy: ArachneService {
-
     var baseUrl: String {
         switch self {
         case .malformedUrl:
@@ -66,13 +65,12 @@ extension Dummy: ArachneService {
         }
     }
 
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         switch self {
         case .reservedHeader:
-            return ["Content-Length" : "1234"]
+            return ["Content-Length": "1234"]
         default:
             return nil
         }
     }
-
 }

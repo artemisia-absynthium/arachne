@@ -16,7 +16,6 @@ enum Github {
 }
 
 extension Github: ArachneService {
-
     var baseUrl: String {
         switch self {
         case .avatar:
@@ -58,13 +57,12 @@ extension Github: ArachneService {
         return nil
     }
 
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         switch self {
         case .avatar:
             return nil
         default:
-            return ["Accept" : "application/vnd.github.v3+json"]
+            return ["Accept": "application/vnd.github.v3+json"]
         }
     }
-
 }

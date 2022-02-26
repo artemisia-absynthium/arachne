@@ -25,7 +25,6 @@ enum MyAPIService {
 }
 
 extension MyAPIService: ArachneService {
-
     var baseUrl: String {
         switch self {
         default:
@@ -73,15 +72,14 @@ extension MyAPIService: ArachneService {
         }
     }
 
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         switch self {
         case .postEndpoint:
             return nil
         default:
-            return ["Accept" : "application/json"]
+            return ["Accept": "application/json"]
         }
     }
-
 }
 ```
 
@@ -169,8 +167,8 @@ pod 'Arachne'
 ## Roadmap
 
 Currently supported tasks are
-* `dataTask`
-* `downloadTask`
+*   `dataTask`
+*   `downloadTask`
 
 Next step will be to add the remaining tasks 🚧
 
@@ -187,7 +185,7 @@ This project is released under the [MIT License](https://github.com/artemisia-ab
 
 This project is currently under active development.
 
-## Why Arachne?
+## Why Arachne
 
 Thinking about networking my mind immediately went to the best "networkers" in nature: spiders.
 

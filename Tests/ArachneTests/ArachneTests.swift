@@ -3,7 +3,6 @@ import Combine
 @testable import Arachne
 
 final class ArachneTests: XCTestCase {
-
     var cancellable: AnyCancellable?
 
     func testGet() throws {
@@ -21,6 +20,7 @@ final class ArachneTests: XCTestCase {
     }
 
     override func tearDown() {
+        super.tearDown()
         cancellable = nil
     }
 
@@ -132,7 +132,9 @@ final class ArachneTests: XCTestCase {
                     case .malformedUrl:
                         XCTFail("Error shouldn't be malformed URL")
                     case .unacceptableStatusCode(let statusCode, let response, let data):
-                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404, response: HTTPURLResponse(), responseContent: Data())
+                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
+                                                                           response: HTTPURLResponse(),
+                                                                           responseContent: Data())
                         XCTAssertNotNil(castedError)
                         XCTAssertEqual(castedError?.errorCode, expectedError.errorCode)
                         XCTAssertEqual(statusCode, 404)
@@ -198,9 +200,9 @@ final class ArachneTests: XCTestCase {
                 case .some(.unacceptableStatusCode(let statusCode, _, _)):
                     XCTAssertEqual(statusCode, 404)
                 case .none:
-                    XCTFail()
+                    XCTFail("Error is none but should be unacceptableStatusCode")
                 case .some(.malformedUrl(_)):
-                    XCTFail()
+                    XCTFail("Error is malformedUrl but should be unacceptableStatusCode")
                 }
                 XCTAssertNotNil(output)
                 errorExpectation.fulfill()
@@ -239,7 +241,8 @@ final class ArachneTests: XCTestCase {
                 .setFailureType(to: URLError.self)
                 .eraseToAnyPublisher()
         }
-        let expectation = XCTestExpectation(description: "Request is modified by the signingPublisher and returns a valid user")
+        let expectation = XCTestExpectation(
+            description: "Request is modified by the signingPublisher and returns a valid user")
 
         let provider = ArachneProvider<Github>(signingPublisher: signingPublisher)
         cancellable = provider.request(.userProfile(""))
@@ -251,5 +254,4 @@ final class ArachneTests: XCTestCase {
 
         wait(for: [expectation], timeout: 5)
     }
-    
 }
