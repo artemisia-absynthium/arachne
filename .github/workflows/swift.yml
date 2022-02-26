@@ -16,9 +16,11 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Run tests
+      run: swift test -v --enable-code-coverage
+    - name: Locate code coverage
       run: |
         echo "::set-output name=CODECOV_PATH::$(swift test --show-codecov-path)"
-      id: test
+      id: locate-code-coverage
     - uses: codecov/codecov-action@v2
       with:
-        files: ${{ steps.test.outputs.CODECOV_PATH }}
+        files: ${{ steps.locate-code-coverage.outputs.CODECOV_PATH }}
