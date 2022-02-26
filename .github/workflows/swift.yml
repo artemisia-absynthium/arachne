@@ -16,4 +16,9 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Run tests
-      run: swift test -v
+      run: |
+        echo "::set-output name=CODECOV_PATH::$(swift test -v --show-codecov-path)"
+      id: test
+    - uses: codecov/codecov-action@v2
+      with:
+        files: ${{ steps.test.outputs.CODECOV_PATH }}
