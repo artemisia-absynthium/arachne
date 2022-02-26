@@ -116,7 +116,7 @@ final class ArachneTests: XCTestCase {
                 expectation.fulfill()
             }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: 20)
     }
 
     func testRequestUnacceptableStatusCodeError() throws {
