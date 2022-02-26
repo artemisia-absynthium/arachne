@@ -10,12 +10,7 @@ import Foundation
 import Combine
 
 extension URLSession {
-    public func downloadTaskPublisher(for request: URLRequest) -> URLSession.DownloadTaskPublisher {
-        .init(request: request, session: self)
-    }
-
     public struct DownloadTaskPublisher: Publisher {
-
         public typealias Output = (url: URL, response: URLResponse)
         public typealias Failure = URLError
 
@@ -35,6 +30,10 @@ extension URLSession {
                                                         request: self.request)
             subscriber.receive(subscription: subscription)
         }
+    }
+
+    public func downloadTaskPublisher(for request: URLRequest) -> URLSession.DownloadTaskPublisher {
+        .init(request: request, session: self)
     }
 }
 

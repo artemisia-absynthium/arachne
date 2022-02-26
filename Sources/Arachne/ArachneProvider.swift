@@ -81,7 +81,8 @@ open class ArachneProvider<T: ArachneService> {
     /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
     /// - Parameters:
     ///   - target: An endpoint.
-    ///   - timeoutInterval: Optional timeout interval in seconds. Default value is the default of `URLRequest`: 60 seconds.
+    ///   - timeoutInterval: Optional timeout interval in seconds.
+    ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the default `URLSession.default`.
     /// - Returns: A publisher publishing a tuple containing the temporary URL of the downloaded file
     /// and the `URLResponse` or an `Error` if anything goes wrong in the pipeline.

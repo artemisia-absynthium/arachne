@@ -168,7 +168,9 @@ final class ArachneTests: XCTestCase {
                     case .malformedUrl:
                         XCTFail("Error shouldn't be malformed URL")
                     case .unacceptableStatusCode(let statusCode, let response, let data):
-                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404, response: HTTPURLResponse(), responseContent: Data())
+                        let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
+                                                                           response: HTTPURLResponse(),
+                                                                           responseContent: Data())
                         XCTAssertNotNil(castedError)
                         XCTAssertEqual(castedError?.errorCode, expectedError.errorCode)
                         XCTAssertEqual(statusCode, 404)
