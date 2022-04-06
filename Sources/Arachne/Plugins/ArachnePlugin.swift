@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol ArachnePlugin {
-    func handle(error: Error, output: Any?)
+    func handle(error: Error, request: URLRequest, output: Any?)
     func handle(request: URLRequest)
     func handle(response: URLResponse, data: Any)
 }

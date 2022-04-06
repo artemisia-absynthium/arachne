@@ -196,7 +196,10 @@ final class ArachneTests: XCTestCase {
             let errorExpectation: XCTestExpectation
             let requestExpectation: XCTestExpectation
 
-            func handle(error: Error, output: Any?) {
+            func handle(error: Error, request: URLRequest, output: Any?) {
+                XCTAssertEqual(request.url?.absoluteString,
+                               "https://api.github.com/notFound",
+                               "Request URL in error is not equal to expected URL")
                 XCTAssertTrue(error is ARError)
                 switch error as? ARError {
                 case .some(.unacceptableStatusCode(let statusCode, _, _)):
@@ -230,7 +233,7 @@ final class ArachneTests: XCTestCase {
                 XCTFail("Shouldn't receive any value, status code should be unacceptable")
             })
 
-        wait(for: [errorExpectation, requestExpectation], timeout: 5)
+        wait(for: [errorExpectation, requestExpectation], timeout: 10)
     }
 
     func testSigningPublisher() throws {

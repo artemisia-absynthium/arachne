@@ -69,7 +69,7 @@ open class ArachneProvider<T: ArachneService> {
             }
             .mapError { error in
                 let output = self.extractOutput(from: error)
-                self.plugins?.forEach { $0.handle(error: error, output: output) }
+                self.plugins?.forEach { $0.handle(error: error, request: request, output: output) }
                 return error
             }
             .receive(on: DispatchQueue.main)
@@ -117,7 +117,7 @@ open class ArachneProvider<T: ArachneService> {
             }
             .mapError { error in
                 let output = self.extractOutput(from: error)
-                self.plugins?.forEach { $0.handle(error: error, output: output) }
+                self.plugins?.forEach { $0.handle(error: error, request: request, output: output) }
                 return error
             }
             .eraseToAnyPublisher()
