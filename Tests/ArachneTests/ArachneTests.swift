@@ -3,6 +3,7 @@ import Combine
 @testable import Arachne
 
 final class ArachneTests: XCTestCase {
+    let timeout: TimeInterval = 10
     var cancellable: AnyCancellable?
 
     func testGet() throws {
@@ -16,7 +17,7 @@ final class ArachneTests: XCTestCase {
                 expectation.fulfill()
             }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 
     override func tearDown() {
@@ -45,7 +46,7 @@ final class ArachneTests: XCTestCase {
                 XCTFail("Shouldn't receive any value, URL is malformed")
             })
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 
     func testMalformedUrlErrorBecauseOfPath() throws {
@@ -73,7 +74,7 @@ final class ArachneTests: XCTestCase {
                 XCTFail("Shouldn't receive any value, URL is malformed")
             })
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 
     func testReservedAppleHeaderIsNotAdded() throws {
@@ -81,7 +82,7 @@ final class ArachneTests: XCTestCase {
 
         let provider = ArachneProvider<Dummy>()
         do {
-            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: 5)
+            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: timeout)
             XCTAssertNil(builtRequest.value(forHTTPHeaderField: "Content-Length"))
         } catch {
             XCTFail("Building request for endpoint \(endpoint) should not fail")
@@ -93,7 +94,7 @@ final class ArachneTests: XCTestCase {
 
         let provider = ArachneProvider<Dummy>()
         do {
-            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: 5)
+            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: timeout)
             XCTAssertEqual(builtRequest.httpBody, "I'm posting something".data(using: .utf8))
         } catch {
             XCTFail("Building request for endpoint \(endpoint) should not fail")
@@ -152,7 +153,7 @@ final class ArachneTests: XCTestCase {
                 XCTFail("Shouldn't receive any value, status code should be unacceptable")
             })
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 
     func testDownloadUnacceptableStatusCodeError() throws {
@@ -188,7 +189,7 @@ final class ArachneTests: XCTestCase {
                 XCTFail("Shouldn't receive any value, status code should be unacceptable")
             })
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 
     func testPluginHasErrorResponse() throws {
@@ -257,6 +258,6 @@ final class ArachneTests: XCTestCase {
                 expectation.fulfill()
             }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: timeout)
     }
 }
