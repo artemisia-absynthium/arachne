@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-/// Use `ArachneProvider` to make requests to a specific `ArachneService`.
+/// Use ``ArachneProvider`` to make requests to a specific ``ArachneService``.
 open class ArachneProvider<T: ArachneService> {
     private let urlSession: URLSession
     private let plugins: [ArachnePlugin]?
@@ -18,9 +18,10 @@ open class ArachneProvider<T: ArachneService> {
     /// Initialize a provider that uses a Combine Publisher to sign requests.
     /// - Parameters:
     ///   - urlSession: Your `URLSession`, uses default if none is passed.
-    ///   - plugins: An optional array of `ArachnePlugin`s.
+    ///   - plugins: An optional array of ``ArachnePlugin``s.
     ///   - signingPublisher: An optional Combine Publisher `(T, URLRequest) -> AnyPublisher<URLRequest, URLError>`
     ///   publisher that outputs the request received as input signed.
+    @available(*, deprecated, message: "Use init(urlSession:signingFunction:plugins:) instead")
     public init(urlSession: URLSession = URLSession(configuration: .default),
                 plugins: [ArachnePlugin]? = nil,
                 signingPublisher: ((T, URLRequest) -> AnyPublisher<URLRequest, URLError>)? = nil) {
@@ -33,7 +34,7 @@ open class ArachneProvider<T: ArachneService> {
     /// Initialize a provider that uses an asynchronous function to sign requests.
     /// - Parameters:
     ///   - urlSession: Your `URLSession`, uses default if none is passed.
-    ///   - plugins: An optional array of `ArachnePlugin`s.
+    ///   - plugins: An optional array of ``ArachnePlugin``s.
     ///   - signingFunction: An optional async throwing function that signs the request before it is made.
     public init(urlSession: URLSession = URLSession(configuration: .default),
                 signingFunction: ((T, URLRequest) async throws -> URLRequest)?,
@@ -46,14 +47,14 @@ open class ArachneProvider<T: ArachneService> {
 
     // MARK: - Combine
 
-    /// Make a request to an endpoint defined in an `ArachneService`.
+    /// Make a request to an endpoint defined in an ``ArachneService``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
-    /// - Returns: A publisher publishing a value of type `responseType`
-    /// or an `Error` if anything goes wrong in the pipeline.
+    /// - Returns: A publisher publishing a value of type `Data`or an `Error` if anything goes wrong in the pipeline.
+    @available(*, deprecated, message: "Use data(_:timeoutInterval:session:) instead")
     open func request(_ target: T,
                       timeoutInterval: Double? = nil,
                       session: URLSession? = nil) -> AnyPublisher<Data, Error> {
@@ -79,7 +80,8 @@ open class ArachneProvider<T: ArachneService> {
             .eraseToAnyPublisher()
     }
 
-    /// Download a resource from an endpoint defined in an `ArachneService`.
+    /// Download a resource from an endpoint defined in an ``ArachneService``.
+    ///
     /// The downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
     /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
     /// - Parameters:
@@ -89,6 +91,7 @@ open class ArachneProvider<T: ArachneService> {
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: A publisher publishing a tuple containing the temporary URL of the downloaded file
     /// and the `URLResponse` or an `Error` if anything goes wrong in the pipeline.
+    @available(*, deprecated, message: "Use download(_:timeoutInterval:session:) instead")
     open func download(_ target: T,
                        timeoutInterval: Double? = nil,
                        session: URLSession? = nil) -> AnyPublisher<(URL, URLResponse), Error> {
@@ -115,13 +118,17 @@ open class ArachneProvider<T: ArachneService> {
 
     // MARK: - Async/Await
 
-    /// Make a request to an endpoint defined in an `ArachneService`.
+    /// Make a request to an endpoint defined in an ``ArachneService``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The data retrieved from the endpoint, along with the response.
+    /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
+    /// ``ARError/malformedUrl(_:)`` if the URL is not considered valid or
+    /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    /// if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     public func data(_ target: T,
                      timeoutInterval: Double? = nil,
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
@@ -145,7 +152,8 @@ open class ArachneProvider<T: ArachneService> {
         return (data, response)
     }
 
-    /// Download a resource from an endpoint defined in an `ArachneService`.
+    /// Download a resource from an endpoint defined in an ``ArachneService``.
+    ///
     /// The downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
     /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
     /// - Parameters:
@@ -154,6 +162,10 @@ open class ArachneProvider<T: ArachneService> {
     ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The URL of the saved file, along with the response.
+    /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
+    /// ``ARError/malformedUrl(_:)`` if the URL is not considered valid or
+    /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    ///  if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     public func download(_ target: T,
                          timeoutInterval: Double? = nil,
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
@@ -179,7 +191,7 @@ open class ArachneProvider<T: ArachneService> {
 
     // MARK: - URLRequest
 
-    /// Builds a `URLRequest` from an `ArachneService` endpoint definition.
+    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.

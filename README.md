@@ -4,9 +4,9 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d00911ec2c7048888abff2642b7ca6f5)](https://www.codacy.com/gh/artemisia-absynthium/arachne/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=artemisia-absynthium/arachne&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/gh/artemisia-absynthium/arachne)
 
-Arachne is a lightweight, minimalistic, zero dependencies networking layer for apps using [Combine](https://developer.apple.com/documentation/combine) developed in Swift, that provides an opinionated abstraction layer to remove boilerplate code.
+Arachne is a lightweight, minimalistic, zero dependencies networking layer for apps using [Swift Concurrency (async/await)](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) or [Combine](https://developer.apple.com/documentation/combine) (support to Combine will be discontinued) developed in Swift, that provides an opinionated abstraction layer to remove boilerplate code.
 
-Arachne aims to expose a Combine [Publisher](https://developer.apple.com/documentation/combine/publisher) even for `URLSession` tasks that don't have one yet.
+Arachne aims to backport async/await `URLSession` tasks to macOS 10.15, iOS 13, iPadOS 13, tvOS 13 and watchOS 7, while the availability of their native counterpart in the Foundation framework is iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+.
 
 This library's design was inspired by [Moya](https://github.com/Moya/Moya), but differently from Moya, Arachne uses only the standard [Foundation framework](https://developer.apple.com/documentation/foundation/url_loading_system) (e.g. `URLSession`).
 
@@ -87,9 +87,24 @@ extension MyAPIService: ArachneService {
 
 Then you can use them like this
 
+Declare your provider
+
 ```swift
-import Combine
+let provider = ArachneProvider<MyAPIService>()
+```
+
+Get data from your endpoint
+
+```swift
+let (data, _) = try await provider.data(.info)
+```
+
+Let's see it assembled in an extract of a SwiftUI app
+
+```swift
 import SwiftUI
+import Arachne
+import os
 
 struct Info: Codable {
     let name: String
@@ -98,32 +113,24 @@ struct Info: Codable {
 class MyApiClient {
     private let provider = ArachneProvider<MyAPIService>()
 
-    func loadInfo() -> AnyPublisher<Info, Error> {
-        return provider.request(.info)
-            .decode(type: Info.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
+    func loadInfo() async throws -> Info {
+        let (data, _) = try await provider.data(.info)
+        return try JSONDecoder().decode(Info.self, from: data)
     }
 }
 
 class MyInteractor: ObservableObject {
     private let apiClient = MyApiClient()
-    private var cancellables = Set<AnyCancellable>()
+    private let logger = Logger(subsystem: "Arachne", category: "MyInteractor")
 
     @Published var info: Info?
 
-    func getInfo() {
-        apiClient.loadInfo()
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    NSLog("Error: \(error.localizedDescription)")
-                }
-            } receiveValue: { info in
-                self.info = info
-            }
-            .store(in: &cancellables)
+    func getInfo() async {
+        do {
+            self.info = try await apiClient.loadInfo()
+        } catch {
+            logger.error("Error: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -133,7 +140,9 @@ struct MyView: View {
     var body: some View {
         Text(interactor.info?.name ?? "")
             .onAppear {
-                interactor.getInfo()
+                Task {
+                    await interactor.getInfo()
+                }
             }
     }
 }
@@ -185,7 +194,8 @@ This project is released under the [MIT License](https://github.com/artemisia-ab
 
 ## Project status
 
-This project is currently under active development.
+This project recently experienced a shift of goal, while the initial goal of this library was to provide Combine publishers for tasks that didn't have one, the introduction of async/await in Swift suddenly made using Combine for network requests look cumbersome and this is why no new Combine tasks will be added.
+Instead the new goal of this library is to backport async/await `URLSession` tasks to macOS 10.15, iOS 13, iPadOS 13, tvOS 13 and watchOS 7, while the availability of their native counterpart in the Foundation framework is iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+.
 
 ## Why Arachne
 

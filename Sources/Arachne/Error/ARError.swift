@@ -19,9 +19,9 @@ public enum ARError: Error {
     ///  - response: The optional response returned from the server
     ///  - responseContent: The response content, the response type can be
     ///    - `Data`, containing the response body, in case you used
-    ///    `ArachneProvider.request(_:timeoutInterval:session:)`
+    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
     ///    - `URL`, the temporary downloaded file URL,
-    ///    in case you used `ArachneProvider.download(_:timeoutInterval:session:)`
+    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)-1g9ve``
     case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: Any)
 }
 
