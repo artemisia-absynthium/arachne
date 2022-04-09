@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'Arachne'
   s.version          = '0.4.0'
-  s.summary          = 'Networking layer for Combine apps written in Swift.'
+  s.summary          = 'Networking layer for apps using Swift Concurrency.'
   s.homepage         = 'https://github.com/artemisia-absynthium/arachne'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = 'artemisia-absynthium'
