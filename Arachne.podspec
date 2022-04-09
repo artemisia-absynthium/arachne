@@ -13,5 +13,5 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target = '13.0'
   s.watchos.deployment_target = '7.0'
 
-  s.source_files = 'Sources/Arachne/**/*'
+  s.source_files = 'Sources/Arachne/**/*.swift'
 end
