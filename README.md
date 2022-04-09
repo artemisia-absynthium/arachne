@@ -148,6 +148,53 @@ struct MyView: View {
 }
 ```
 
+## Migrate from 0.3.0 to 0.4.0
+
+A function using a Combine publisher, for example:
+
+```swift
+func getInfo() {
+    apiClient.loadInfo()
+        .sink { completion in
+            switch completion {
+            case .finished:
+                break
+            case .failure(let error):
+                // Handle error
+            }
+        } receiveValue: { info in
+            self.info = info
+        }
+        .store(in: &cancellables)
+}
+```
+
+can be easily migrated like this
+
+```swift
+func getInfo() async {
+    do {
+        self.info = try await apiClient.loadInfo()
+    } catch {
+        // Handle error
+    }
+}
+```
+
+or if you cannot make your function async
+
+```swift
+func getInfo() {
+    Task {
+        do {
+            self.info = try await apiClient.loadInfo()
+        } catch {
+            // Handle error
+        }
+    }
+}
+```
+
 ## Installation
 
 ### Swift Package Manager
