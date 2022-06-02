@@ -1,0 +1,31 @@
+name: Generate and Deploy DocC
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build documentation archive
+      run: xcodebuild docbuild -scheme Arachne -derivedDataPath ./docbuild -destination 'platform=iOS Simulator,OS=latest,name=iPhone 13'
+    - name: Find and push the generated archive
+      run: |
+        DOCCARCHIVE=find ./docbuild -type d -iname "Arachne.doccarchive"
+        echo "Generated documentation is at path: $DOCCARCHIVE"
+        
+        # Generate commit message
+        DOC_COMMIT_MESSAGE="Update documentation - Commit: "`git rev-parse --short HEAD`" '"`git log -1 --pretty='%s'`"' - "`date +%d/%m/%Y`
+        
+        git checkout documentation
+        cp -R $DOCCARCHIVE .
+        git status
+        git add .
+        git commit -m "$DOC_COMMIT_MESSAGE"
+        git status
+        
+        git push origin documentation
