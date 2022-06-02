@@ -21,6 +21,7 @@ jobs:
         # Generate commit message
         DOC_COMMIT_MESSAGE="Update documentation - Commit: "`git rev-parse --short HEAD`" '"`git log -1 --pretty='%s'`"' - "`date +%d/%m/%Y`
         
+        git fetch
         git checkout documentation
         cp -R $DOCCARCHIVE .
         git status
