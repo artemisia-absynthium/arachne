@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
   s.name             = 'Arachne'
   s.version          = '0.4.0'
   s.summary          = 'Networking layer for apps using Swift Concurrency.'
-  s.homepage         = 'https://statuesque-lebkuchen-18ba77.netlify.app'
+  s.homepage         = 'https://arachne.netlify.app'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = 'artemisia-absynthium'
   s.source           = { :git => 'https://github.com/artemisia-absynthium/arachne.git', :tag => s.version.to_s }
