@@ -1,3 +1,13 @@
+//
+// Arachne.swift - the Arachne Service definition
+// This source file is part of the Arachne open source project
+//
+// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Licensed under MIT
+//
+// See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
+//
+
 import Foundation
 
 /// Build an `enum` that extends this `Protocol` to represent your API service.

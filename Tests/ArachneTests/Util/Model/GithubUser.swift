@@ -1,8 +1,11 @@
 //
-//  File.swift
-//  
+// GithubUser.swift - test suite model
+// This source file is part of the Arachne open source project
 //
-//  Created by Cristina De Rito on 14/10/21.
+// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Licensed under MIT
+//
+// See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
 //
 
 import Foundation
