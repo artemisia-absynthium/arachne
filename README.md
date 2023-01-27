@@ -148,9 +148,9 @@ struct MyView: View {
 }
 ```
 
-## Migrate from 0.3.0 to 0.4.0
+## Migrate from 0.3.0 to 0.4.0+
 
-A function using a Combine publisher, for example:
+A function using a `Combine` publisher, for example:
 
 ```swift
 func getInfo() {
@@ -201,7 +201,7 @@ func getInfo() {
 
 #### Using Xcode UI
 
-Go to your Project Settings -> Swift Packages and add Arachne from there.
+Go to your Project Settings > Swift Packages and add Arachne by entering `https://github.com/artemisia-absynthium/arachne.git` in the search field.
 
 #### Not using Xcode UI
 
