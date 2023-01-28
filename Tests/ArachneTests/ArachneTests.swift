@@ -12,7 +12,7 @@ import XCTest
 @testable import Arachne
 
 final class ArachneTests: XCTestCase {
-    let timeout: TimeInterval = 10
+    let timeout: TimeInterval = 30
 
     func testGet() throws {
         let expectation = XCTestExpectation(description: "Download my Github user info")
@@ -223,6 +223,126 @@ final class ArachneTests: XCTestCase {
         let requestExpectation = XCTestExpectation(description: "The plugin handles the correct request")
         let plugin = TestPlugin(errorExpectation: errorExpectation, requestExpectation: requestExpectation)
 
+        let provider = ArachneProvider<Github>().with(plugins: [plugin])
+        Task {
+            do {
+                _ = try await provider.data(.notFound)
+                XCTFail("Shouldn't receive any value, status code should be unacceptable")
+            } catch {
+                // Nothing to do
+            }
+        }
+
+        wait(for: [errorExpectation, requestExpectation], timeout: timeout)
+    }
+
+    func testRequestModifier() throws {
+        let requestModifier: (Github, inout URLRequest) async throws -> Void = { _, request in
+            let url = request.url?.absoluteString ?? ""
+            request.url = URL(string: "\(url)artemisia-absynthium")
+        }
+        let expectation = XCTestExpectation(
+            description: "Request is modified by the signingPublisher and returns a valid user")
+
+        let provider = ArachneProvider<Github>().with(requestModifier: requestModifier)
+        Task {
+            do {
+                let (data, _) = try await provider.data(.userProfile(""))
+                let user = try JSONDecoder().decode(GithubUser.self, from: data)
+                XCTAssertEqual(user, GithubUser(login: "artemisia-absynthium"))
+                expectation.fulfill()
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+        }
+
+        wait(for: [expectation], timeout: timeout)
+    }
+
+    func testNewInit() throws {
+        class TestURLSessionDelegate: NSObject, URLSessionDataDelegate {
+            var check: Bool
+
+            override init() {
+                self.check = false
+            }
+
+            func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+                check = true
+            }
+
+            func reset() {
+                check = false
+            }
+        }
+
+        let expectation = XCTestExpectation(description: "The provider is using my URLSession")
+
+        Task {
+            do {
+                let delegate = TestURLSessionDelegate()
+                let customUrlSession = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+                var provider = ArachneProvider<Github>(urlSession: customUrlSession)
+                _ = try await provider.data(.zen)
+                XCTAssertTrue(delegate.check)
+
+                delegate.reset()
+
+                provider = provider.with(plugins: [])
+                _ = try await provider.data(.zen)
+                XCTAssertTrue(delegate.check)
+
+                delegate.reset()
+
+                provider = provider.with(requestModifier: { _, _ in })
+                _ = try await provider.data(.zen)
+                XCTAssertTrue(delegate.check)
+
+                expectation.fulfill()
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+        }
+
+        wait(for: [expectation], timeout: timeout)
+    }
+
+    func testDeprecatedPluginHasErrorResponse() throws {
+        struct TestPlugin: ArachnePlugin {
+            let errorExpectation: XCTestExpectation
+            let requestExpectation: XCTestExpectation
+
+            func handle(error: Error, request: URLRequest, output: Any?) {
+                XCTAssertEqual(request.url?.absoluteString,
+                               "https://api.github.com/notFound",
+                               "Request URL in error is not equal to expected URL")
+                XCTAssertTrue(error is ARError)
+                switch error as? ARError {
+                case .some(.unacceptableStatusCode(let statusCode, _, _)):
+                    XCTAssertEqual(statusCode, 404)
+                case .none:
+                    XCTFail("Error is none but should be unacceptableStatusCode")
+                case .some(.malformedUrl(_)):
+                    XCTFail("Error is malformedUrl but should be unacceptableStatusCode")
+                }
+                XCTAssertNotNil(output)
+                errorExpectation.fulfill()
+            }
+
+            func handle(request: URLRequest) {
+                XCTAssertEqual(request.url?.absoluteString, "\(Github.notFound.baseUrl)\(Github.notFound.path)")
+                requestExpectation.fulfill()
+            }
+
+            func handle(response: URLResponse, data: Any) {
+                XCTFail("Should not have been called")
+            }
+        }
+
+        let errorExpectation = XCTestExpectation(description: "The plugin has correct error response data")
+        let requestExpectation = XCTestExpectation(description: "The plugin handles the correct request")
+        let plugin = TestPlugin(errorExpectation: errorExpectation, requestExpectation: requestExpectation)
+
         let provider = ArachneProvider<Github>(plugins: [plugin])
         Task {
             do {
@@ -236,18 +356,17 @@ final class ArachneTests: XCTestCase {
         wait(for: [errorExpectation, requestExpectation], timeout: timeout)
     }
 
-    func testSigningFunction() throws {
+    func testDeprecatedSigningFunction() throws {
         let signingFunction: (Github, URLRequest) async throws -> URLRequest = { _, request in
-            var mutableRequest = request
-            var url = request.url?.absoluteString ?? ""
-            url += "artemisia-absynthium"
-            mutableRequest.url = URL(string: url)
-            return mutableRequest
+            var modifiedRequest = request
+            let url = request.url?.absoluteString ?? ""
+            modifiedRequest.url = URL(string: "\(url)artemisia-absynthium")
+            return modifiedRequest
         }
         let expectation = XCTestExpectation(
             description: "Request is modified by the signingPublisher and returns a valid user")
 
-        let provider = ArachneProvider<Github>(signingFunction: signingFunction, plugins: nil)
+        let provider = ArachneProvider<Github>(signingFunction: signingFunction)
         Task {
             do {
                 let (data, _) = try await provider.data(.userProfile(""))

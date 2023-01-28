@@ -11,22 +11,74 @@
 import Foundation
 
 /// Use ``ArachneProvider`` to make requests to a specific ``ArachneService``.
-open class ArachneProvider<T: ArachneService> {
+public struct ArachneProvider<T: ArachneService> {
     private let urlSession: URLSession
-    private let plugins: [ArachnePlugin]?
     private let signingFunction: ((T, URLRequest) async throws -> URLRequest)?
+    private let requestModifier: ((T, inout URLRequest) async throws -> Void)?
+    private let plugins: [ArachnePlugin]?
 
     /// Initialize a provider that uses an asynchronous function to sign requests.
     /// - Parameters:
     ///   - urlSession: Your `URLSession`, uses default if none is passed.
-    ///   - plugins: An optional array of ``ArachnePlugin``s.
     ///   - signingFunction: An optional async throwing function that signs the request before it is made.
+    ///   - plugins: An optional array of ``ArachnePlugin``s.
+    @available(*, deprecated, message: "Use the new init(urlSession:) and chain calls to with(plugins:) and with(requestModifier:)")
     public init(urlSession: URLSession = URLSession(configuration: .default),
                 signingFunction: ((T, URLRequest) async throws -> URLRequest)? = nil,
                 plugins: [ArachnePlugin]? = nil) {
         self.urlSession = urlSession
-        self.plugins = plugins
         self.signingFunction = signingFunction
+        self.requestModifier = nil
+        self.plugins = plugins
+    }
+
+    /// Initialize a provider that uses an asynchronous function to modify requests.
+    /// - Parameters:
+    ///   - urlSession: Your `URLSession`.
+    ///   - requestModifier: An optional async throwing function that allows to modify the `URLRequest`, based on the given `T` endpoint, before it's submitted.
+    ///   - plugins: An optional array of ``ArachnePlugin``s.
+    private init(urlSession: URLSession, requestModifier: ((T, inout URLRequest) async throws -> Void)?, plugins: [ArachnePlugin]?) {
+        self.urlSession = urlSession
+        self.signingFunction = nil
+        self.requestModifier = requestModifier
+        self.plugins = plugins
+    }
+
+    /// Initialize a provider with a given `URLSession`, no plugins and no request modifier.
+    /// It can be used as a starting point to set plugins and request modifier with chained calls to ``with(plugins:)`` and ``with(requestModifier:)``.
+    /// - Parameter urlSession: Your `URLSession`. It uses the shared instance if none is passed.
+    public init(urlSession: URLSession = .shared) {
+        self.urlSession = urlSession
+        self.plugins = nil
+        self.signingFunction = nil
+        self.requestModifier = nil
+    }
+
+    /// Adds the given `plugins` to ``ArachneProvider``.
+    /// - Parameter plugins: An array of ``ArachnePlugin``s to be added to the provider.
+    /// - Returns: The same ``ArachneProvider`` with the added `plugins`.
+    public func with(plugins: [ArachnePlugin]) -> ArachneProvider<T> {
+        return ArachneProvider(urlSession: urlSession, requestModifier: requestModifier, plugins: plugins)
+    }
+
+    /// Adds the given `requestModifier` to ``ArachneProvider``.
+    ///
+    /// Example:
+    /// ```
+    /// let requestModifier: (T, inout URLRequest) async throws -> Void = { endpoint, request in
+    ///     switch endpoint {
+    ///     case .authEndpoint:
+    ///         request.addValue("Bearer Token", forHTTPHeaderField: "Authorization")
+    ///     default:
+    ///         break
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Parameter requestModifier: An optional async throwing function that allows to modify the `URLRequest`, based on the given `T` endpoint, before it's submitted.
+    /// - Returns: The same ``ArachneProvider`` with the given `requestModifier`.
+    public func with(requestModifier: @escaping (T, inout URLRequest) async throws -> Void) -> ArachneProvider<T> {
+        return ArachneProvider(urlSession: urlSession, requestModifier: requestModifier, plugins: plugins)
     }
 
     // MARK: - Async/Await
@@ -46,7 +98,7 @@ open class ArachneProvider<T: ArachneService> {
                      timeoutInterval: Double? = nil,
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
         var request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
-        request = try await sign(request: request, target: target)
+        try await sign(request: &request, target: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let (data, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
             (session ?? self.urlSession).dataTask(with: request) { data, response, error in
@@ -83,7 +135,7 @@ open class ArachneProvider<T: ArachneService> {
                          timeoutInterval: Double? = nil,
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
         var request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
-        request = try await sign(request: request, target: target)
+        try await sign(request: &request, target: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let (url, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
             (session ?? self.urlSession).downloadTask(with: request) { url, response, error in
@@ -110,19 +162,20 @@ open class ArachneProvider<T: ArachneService> {
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
-    public func buildRequest(target: T, timeoutInterval: Double?) throws -> URLRequest {
+    public func buildRequest(target: T, timeoutInterval: Double? = nil) throws -> URLRequest {
         let url = try URLUtil.composedUrl(for: target)
         return URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
     }
 
     // MARK: - Internal methods
 
-    private func sign(request: URLRequest, target: T) async throws -> URLRequest {
-        var signedRequest = request
+    private func sign(request: inout URLRequest, target: T) async throws {
         if let signingFunction = signingFunction {
-            signedRequest = try await signingFunction(target, request)
+            request = try await signingFunction(target, request)
         }
-        return signedRequest
+        if let requestModifier = requestModifier {
+            try await requestModifier(target, &request)
+        }
     }
 
     private func handleDataResponse(target: T, data: Data, response: URLResponse) throws -> (Data, URLResponse) {
