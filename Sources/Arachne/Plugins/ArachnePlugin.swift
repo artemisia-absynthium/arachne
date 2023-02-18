@@ -23,7 +23,7 @@ public protocol ArachnePlugin {
     ///     - `Data`, containing the response body, in case you used
     ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
     ///     - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)-1g9ve``
+    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
     func handle(response: URLResponse, data: Any)
 
     /// This function gets called whenever an error occurs, immediately before throwing it,
@@ -34,6 +34,6 @@ public protocol ArachnePlugin {
     ///     - `Data`, containing the response body, in case you used
     ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
     ///     - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)-1g9ve``
+    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
     func handle(error: Error, request: URLRequest, output: Any?)
 }

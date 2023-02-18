@@ -81,7 +81,7 @@ public struct ArachneProvider<T: ArachneService> {
         return ArachneProvider(urlSession: urlSession, requestModifier: requestModifier, plugins: plugins)
     }
 
-    // MARK: - Async/Await
+    // MARK: - Tasks
 
     /// Make a request to an endpoint defined in an ``ArachneService``.
     /// - Parameters:
@@ -97,14 +97,12 @@ public struct ArachneProvider<T: ArachneService> {
     public func data(_ target: T,
                      timeoutInterval: Double? = nil,
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
-        var request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
-        try await sign(request: &request, target: target)
+        let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
         let (data, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
             (session ?? self.urlSession).dataTask(with: request) { data, response, error in
                 guard let data = data, let response = response, error == nil else {
-                    continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                    return
+                    return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
                 }
                 do {
                     let (data, response) = try self.handleDataResponse(target: target, data: data, response: response)
@@ -134,14 +132,12 @@ public struct ArachneProvider<T: ArachneService> {
     public func download(_ target: T,
                          timeoutInterval: Double? = nil,
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
-        var request = try buildRequest(target: target, timeoutInterval: timeoutInterval)
-        try await sign(request: &request, target: target)
+        let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
         let (url, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
             (session ?? self.urlSession).downloadTask(with: request) { url, response, error in
                 guard let url = url, let response = response, error == nil else {
-                    continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                    return
+                    return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
                 }
                 do {
                     let (url, response) = try self.handleDownloadResponse(target: target, url: url, response: response)
@@ -157,6 +153,8 @@ public struct ArachneProvider<T: ArachneService> {
     // MARK: - URLRequest
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition.
+    ///
+    /// The output request is not modified using the provided `signingFunction` or `requestModifier`, you may want to use ``buildCompleteRequest(target:timeoutInterval:)``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
@@ -167,9 +165,24 @@ public struct ArachneProvider<T: ArachneService> {
         return URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
     }
 
+    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the provided `signingFunction` or `requestModifier`, if any.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - timeoutInterval: Optional timeout interval in seconds.
+    ///   Default value is the default of `URLRequest`: 60 seconds.
+    /// - Returns: The built `URLRequest`.
+    public func buildCompleteRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
+        let url = try URLUtil.composedUrl(for: target)
+        var request = URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
+        try await modify(request: &request, target: target)
+        return request
+    }
+
+    // TODO: Aggiungi metodi disponibili solo da iOS 15 in poi per fare la request direttamente async che usa solo modifier e plugins
+
     // MARK: - Internal methods
 
-    private func sign(request: inout URLRequest, target: T) async throws {
+    private func modify(request: inout URLRequest, target: T) async throws {
         if let signingFunction = signingFunction {
             request = try await signingFunction(target, request)
         }
