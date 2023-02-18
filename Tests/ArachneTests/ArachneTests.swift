@@ -116,6 +116,9 @@ final class ArachneTests: XCTestCase {
                 let httpResponse = response as? HTTPURLResponse
                 XCTAssertNotNil(httpResponse)
                 XCTAssertEqual(httpResponse?.statusCode, 200)
+                let (newUrl, _) = try await provider.download(.avatar(id))
+                let newFileExists = FileManager.default.fileExists(atPath: newUrl.path)
+                XCTAssertTrue(newFileExists, "Redownloaded file doesn't exist")
                 expectation.fulfill()
             } catch {
                 XCTFail("Unexpected error: \(error.localizedDescription)")
