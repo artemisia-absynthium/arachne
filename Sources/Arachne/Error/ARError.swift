@@ -24,7 +24,7 @@ public enum ARError: Error {
     ///    - `Data`, containing the response body, in case you used
     ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
     ///    - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)-1g9ve``
+    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
     case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: Any)
 }
 
