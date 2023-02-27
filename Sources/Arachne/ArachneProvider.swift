@@ -73,7 +73,6 @@ public struct ArachneProvider<T: ArachneService> {
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The data retrieved from the endpoint, along with the response.
     /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
-    /// ``ARError/malformedUrl(_:)`` if the URL is not considered valid or
     /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
     /// if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     public func data(_ target: T,
@@ -117,7 +116,6 @@ public struct ArachneProvider<T: ArachneService> {
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The URL of the saved file, along with the response.
     /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
-    /// ``ARError/malformedUrl(_:)`` if the URL is not considered valid or
     /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
     ///  if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     public func download(_ target: T,

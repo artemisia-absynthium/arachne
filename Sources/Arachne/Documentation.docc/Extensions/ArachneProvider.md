@@ -4,7 +4,7 @@
 
 ### Init
 
-- ``init(urlSession:signingFunction:plugins:)``
+- ``init(urlSession:)``
 
 ### Performing asynchronous requests
 
