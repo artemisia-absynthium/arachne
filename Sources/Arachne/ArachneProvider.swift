@@ -89,18 +89,18 @@ public struct ArachneProvider<T: ArachneService> {
                 throw handleAndReturn(error: error, request: request)
             }
         } else {
-            return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
-                currentSession.dataTask(with: request) { data, response, error in
-                    guard let data = data, let response = response, error == nil else {
-                        return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                    }
-                    do {
-                        let (data, response) = try self.handleDataResponse(target: target, data: data, response: response)
+            do {
+                let (data, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
+                    currentSession.dataTask(with: request) { data, response, error in
+                        guard let data = data, let response = response, error == nil else {
+                            return continuation.resume(throwing: error!)
+                        }
                         continuation.resume(returning: (data, response))
-                    } catch {
-                        continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
-                    }
-                }.resume()
+                    }.resume()
+                }
+                return try handleDataResponse(target: target, data: data, response: response)
+            } catch {
+                throw handleAndReturn(error: error, request: request)
             }
         }
     }
@@ -132,18 +132,18 @@ public struct ArachneProvider<T: ArachneService> {
                 throw handleAndReturn(error: error, request: request)
             }
         } else {
-            return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
-                currentSession.downloadTask(with: request) { url, response, error in
-                    guard let url = url, let response = response, error == nil else {
-                        return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                    }
-                    do {
-                        let (url, response) = try self.handleDownloadResponse(target: target, url: url, response: response)
+            do {
+                let (url, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
+                    currentSession.downloadTask(with: request) { url, response, error in
+                        guard let url = url, let response = response, error == nil else {
+                            return continuation.resume(throwing: error!)
+                        }
                         continuation.resume(returning: (url, response))
-                    } catch {
-                        continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
-                    }
-                }.resume()
+                    }.resume()
+                }
+                return try handleDownloadResponse(target: target, url: url, response: response)
+            } catch {
+                throw handleAndReturn(error: error, request: request)
             }
         }
     }
