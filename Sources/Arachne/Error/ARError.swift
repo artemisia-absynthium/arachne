@@ -12,9 +12,6 @@ import Foundation
 
 /// Errors that can be thrown by Arachne networking library
 public enum ARError: Error {
-    /// Error thrown if any part of the URL is malformed
-    case malformedUrl(String)
-
     /// Error thrown if the response status code is not acceptable
     ///
     /// The fields returned in the error are:
@@ -32,7 +29,7 @@ public extension ARError {
     /// The optional underlying error that caused `ARError` to be thrown
     internal var underlyingError: Error? {
         switch self {
-        case .malformedUrl, .unacceptableStatusCode:
+        case .unacceptableStatusCode:
             return nil
         }
     }
@@ -44,8 +41,6 @@ extension ARError: LocalizedError {
     /// A string containing the description of the error
     public var errorDescription: String? {
         switch self {
-        case .malformedUrl(let url):
-            return "Malformed URL: \(url)"
         case .unacceptableStatusCode(let code, _, _):
             return "Unacceptable status code: \(String(describing: code))"
         }
@@ -62,8 +57,6 @@ extension ARError: CustomNSError {
 
     public var errorCode: Int {
         switch self {
-        case .malformedUrl:
-            return 900
         case .unacceptableStatusCode:
             return 901
         }

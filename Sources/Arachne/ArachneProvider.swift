@@ -13,24 +13,8 @@ import Foundation
 /// Use ``ArachneProvider`` to make requests to a specific ``ArachneService``.
 public struct ArachneProvider<T: ArachneService> {
     private let urlSession: URLSession
-    private let signingFunction: ((T, URLRequest) async throws -> URLRequest)?
     private let requestModifier: ((T, inout URLRequest) async throws -> Void)?
     private let plugins: [ArachnePlugin]?
-
-    /// Initialize a provider that uses an asynchronous function to sign requests.
-    /// - Parameters:
-    ///   - urlSession: Your `URLSession`, uses default if none is passed.
-    ///   - signingFunction: An optional async throwing function that signs the request before it is made.
-    ///   - plugins: An optional array of ``ArachnePlugin``s.
-    @available(*, deprecated, message: "Use the new init(urlSession:) and chain calls to with(plugins:) and with(requestModifier:)")
-    public init(urlSession: URLSession = URLSession(configuration: .default),
-                signingFunction: ((T, URLRequest) async throws -> URLRequest)? = nil,
-                plugins: [ArachnePlugin]? = nil) {
-        self.urlSession = urlSession
-        self.signingFunction = signingFunction
-        self.requestModifier = nil
-        self.plugins = plugins
-    }
 
     /// Initialize a provider that uses an asynchronous function to modify requests.
     /// - Parameters:
@@ -39,7 +23,6 @@ public struct ArachneProvider<T: ArachneService> {
     ///   - plugins: An optional array of ``ArachnePlugin``s.
     private init(urlSession: URLSession, requestModifier: ((T, inout URLRequest) async throws -> Void)?, plugins: [ArachnePlugin]?) {
         self.urlSession = urlSession
-        self.signingFunction = nil
         self.requestModifier = requestModifier
         self.plugins = plugins
     }
@@ -50,7 +33,6 @@ public struct ArachneProvider<T: ArachneService> {
     public init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
         self.plugins = nil
-        self.signingFunction = nil
         self.requestModifier = nil
     }
 
@@ -99,20 +81,29 @@ public struct ArachneProvider<T: ArachneService> {
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
         let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
-        let (data, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
-            (session ?? self.urlSession).dataTask(with: request) { data, response, error in
-                guard let data = data, let response = response, error == nil else {
-                    return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                }
-                do {
-                    let (data, response) = try self.handleDataResponse(target: target, data: data, response: response)
-                    continuation.resume(returning: (data, response))
-                } catch {
-                    continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
-                }
-            }.resume()
+        let currentSession = session ?? self.urlSession
+        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+            do {
+                let (data, response) = try await currentSession.data(for: request)
+                return try handleDataResponse(target: target, data: data, response: response)
+            } catch {
+                throw handleAndReturn(error: error, request: request)
+            }
+        } else {
+            return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
+                currentSession.dataTask(with: request) { data, response, error in
+                    guard let data = data, let response = response, error == nil else {
+                        return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
+                    }
+                    do {
+                        let (data, response) = try self.handleDataResponse(target: target, data: data, response: response)
+                        continuation.resume(returning: (data, response))
+                    } catch {
+                        continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
+                    }
+                }.resume()
+            }
         }
-        return (data, response)
     }
 
     /// Download a resource from an endpoint defined in an ``ArachneService``.
@@ -134,20 +125,29 @@ public struct ArachneProvider<T: ArachneService> {
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
         let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
-        let (url, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
-            (session ?? self.urlSession).downloadTask(with: request) { url, response, error in
-                guard let url = url, let response = response, error == nil else {
-                    return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
-                }
-                do {
-                    let (url, response) = try self.handleDownloadResponse(target: target, url: url, response: response)
-                    continuation.resume(returning: (url, response))
-                } catch {
-                    continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
-                }
-            }.resume()
+        let currentSession = session ?? self.urlSession
+        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+            do {
+                let (url, response) = try await currentSession.download(for: request)
+                return try handleDownloadResponse(target: target, url: url, response: response)
+            } catch {
+                throw handleAndReturn(error: error, request: request)
+            }
+        } else {
+            return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
+                currentSession.downloadTask(with: request) { url, response, error in
+                    guard let url = url, let response = response, error == nil else {
+                        return continuation.resume(throwing: self.handleAndReturn(error: error!, request: request))
+                    }
+                    do {
+                        let (url, response) = try self.handleDownloadResponse(target: target, url: url, response: response)
+                        continuation.resume(returning: (url, response))
+                    } catch {
+                        continuation.resume(throwing: self.handleAndReturn(error: error, request: request))
+                    }
+                }.resume()
+            }
         }
-        return (url, response)
     }
 
     // MARK: - URLRequest
@@ -178,14 +178,9 @@ public struct ArachneProvider<T: ArachneService> {
         return request
     }
 
-    // TODO: Aggiungi metodi disponibili solo da iOS 15 in poi per fare la request direttamente async che usa solo modifier e plugins
-
     // MARK: - Internal methods
 
     private func modify(request: inout URLRequest, target: T) async throws {
-        if let signingFunction = signingFunction {
-            request = try await signingFunction(target, request)
-        }
         if let requestModifier = requestModifier {
             try await requestModifier(target, &request)
         }

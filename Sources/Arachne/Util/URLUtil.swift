@@ -13,7 +13,10 @@ import Foundation
 enum URLUtil {
     static func composedUrl<T: ArachneService>(for target: T) throws -> URL {
         guard var urlComponents = URLComponents(string: target.baseUrl) else {
-            throw ARError.malformedUrl(target.baseUrl)
+            throw URLError(.unsupportedURL, userInfo: [
+                NSLocalizedDescriptionKey : "Unsupported URL",
+                NSURLErrorFailingURLStringErrorKey : target.baseUrl
+            ])
         }
         urlComponents.path.append(target.path)
         urlComponents.queryItems = target.queryStringItems?.map { queryItem in
@@ -21,7 +24,10 @@ enum URLUtil {
                          value: queryItem.value?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed))
         }
         guard let url = urlComponents.url else {
-            throw ARError.malformedUrl(urlComponents.description)
+            throw URLError(.unsupportedURL, userInfo: [
+                NSLocalizedDescriptionKey : "Unsupported URL",
+                NSURLErrorFailingURLStringErrorKey : urlComponents.description
+            ])
         }
         return url
     }
