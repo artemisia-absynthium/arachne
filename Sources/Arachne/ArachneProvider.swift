@@ -107,8 +107,11 @@ public struct ArachneProvider<T: ArachneService> {
 
     /// Download a resource from an endpoint defined in an ``ArachneService``.
     ///
-    /// The downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
-    /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.downloadTask`.
+    /// **Since iOS 15** the downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
+    /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.download`.
+    ///
+    /// **On iOS 14 and lower** the temporary file is copied in the user cache folder so you are responsible for removing the file
+    /// when your app no longer needs it.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
@@ -138,7 +141,18 @@ public struct ArachneProvider<T: ArachneService> {
                         guard let url = url, let response = response, error == nil else {
                             return continuation.resume(throwing: error!)
                         }
-                        continuation.resume(returning: (url, response))
+                        do {
+                            let tempDestination = try FileManager.default
+                                .url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                                .appendingPathComponent(url.lastPathComponent)
+                            if FileManager.default.fileExists(atPath: tempDestination.path) {
+                                try FileManager.default.removeItem(at: tempDestination)
+                            }
+                            try FileManager.default.copyItem(at: url, to: tempDestination)
+                            continuation.resume(returning: (tempDestination, response))
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
                     }.resume()
                 }
                 return try handleDownloadResponse(target: target, url: url, response: response)
