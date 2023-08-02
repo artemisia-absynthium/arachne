@@ -209,11 +209,6 @@ public struct ArachneProvider<T: ArachneService> {
         return (data, response)
     }
 
-    private func handleDataResponse(target: T, data: Data, response: URLResponse) throws -> Data {
-        let (data, _) = try handleDataResponse(target: target, data: data, response: response)
-        return data
-    }
-
     private func handleDownloadResponse(target: T, url: URL, response: URLResponse) throws -> (URL, URLResponse) {
         guard let httpResponse = response as? HTTPURLResponse,
               target.validCodes.contains(httpResponse.statusCode) else {
