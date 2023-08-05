@@ -1,5 +1,5 @@
 //
-// Arachne.swift - the Arachne Service definition
+// ArachneService.swift - the Arachne Service definition
 // This source file is part of the Arachne open source project
 //
 // Copyright (c) 2021 - 2023 artemisia-absynthium
@@ -32,19 +32,35 @@ public protocol ArachneService {
 
     /// HTTP response status codes that you consider valid, default value is [200...299].
     var validCodes: [Int] { get }
-}
 
-/// HTTP methods enumeration
-public enum HttpMethod: String {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-    case head = "HEAD"
+    /// HTTP response expected mime type, default value is `nil`.
+    var expectedMimeType: String? { get }
+
+    /// Timeout interval, default value is `nil`, which leaves default value of `URLRequest`: 60 seconds.
+    var timeoutInterval: Double? { get }
 }
 
 public extension ArachneService {
     var validCodes: [Int] {
-        return Array(200...299)
+        Array(200...299)
+    }
+
+    var expectedMimeType: String? {
+        nil
+    }
+
+    var timeoutInterval: Double? {
+        nil
+    }
+
+    /// Utility method to get the full URL for a target
+    func url() throws -> URL {
+        return try URLUtil.composedUrl(for: self)
+    }
+
+    /// Utility method to get the URL request for a target
+    /// > TIp: The output request is not modified using the provided `signingFunction` or `requestModifier`, you may want to use `ArachneProvider.finalRequest(target:timeoutInterval:)`.
+    func urlRequest() throws -> URLRequest {
+        return URLUtil.composedRequest(for: self, url: try url(), timeoutInterval: timeoutInterval)
     }
 }

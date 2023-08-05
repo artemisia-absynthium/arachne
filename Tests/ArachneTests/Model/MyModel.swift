@@ -1,5 +1,5 @@
 //
-// GithubUser.swift - test suite model
+// MyModel.swift - test suite model
 // This source file is part of the Arachne open source project
 //
 // Copyright (c) 2021 - 2023 artemisia-absynthium
@@ -10,10 +10,10 @@
 
 import Foundation
 
-struct GithubUser: Codable, Equatable {
-    let login: String
+struct MyModel: Decodable, Equatable {
+    let field: String
 
-    static func == (lhs: GithubUser, rhs: GithubUser) -> Bool {
-        return lhs.login == rhs.login
+    static func == (lhs: MyModel, rhs: MyModel) -> Bool {
+        return lhs.field == rhs.field
     }
 }

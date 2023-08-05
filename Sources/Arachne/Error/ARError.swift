@@ -23,13 +23,25 @@ public enum ARError: Error {
     ///    - `URL`, the temporary downloaded file URL,
     ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
     case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: Any)
+
+    /// Error thrown if the response mime type does not match the expected one
+    ///
+    /// The fields returned in the error are:
+    ///  - mimeType: The response mime type
+    ///  - response: The response returned from the server
+    ///  - responseContent: The response content, the response type can be
+    ///    - `Data`, containing the response body, in case you used
+    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
+    ///    - `URL`, the temporary downloaded file URL,
+    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
+    case unexpectedMimeType(mimeType: String?, response: HTTPURLResponse, responseContent: Any)
 }
 
 public extension ARError {
     /// The optional underlying error that caused `ARError` to be thrown
     internal var underlyingError: Error? {
         switch self {
-        case .unacceptableStatusCode:
+        case .unacceptableStatusCode, .unexpectedMimeType:
             return nil
         }
     }
@@ -43,6 +55,8 @@ extension ARError: LocalizedError {
         switch self {
         case .unacceptableStatusCode(let code, _, _):
             return "Unacceptable status code: \(String(describing: code))"
+        case .unexpectedMimeType(let mimeType, _, _):
+            return "Unexpected mime type: \(String(describing: mimeType))"
         }
     }
 }
@@ -59,6 +73,8 @@ extension ARError: CustomNSError {
         switch self {
         case .unacceptableStatusCode:
             return 901
+        case .unexpectedMimeType:
+            return 902
         }
     }
 }

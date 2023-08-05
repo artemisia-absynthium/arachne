@@ -78,7 +78,7 @@ public struct ArachneProvider<T: ArachneService> {
     public func data(_ target: T,
                      timeoutInterval: Double? = nil,
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
-        let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
+        let request = try await finalRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -124,7 +124,7 @@ public struct ArachneProvider<T: ArachneService> {
     public func download(_ target: T,
                          timeoutInterval: Double? = nil,
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
-        let request = try await buildCompleteRequest(target: target, timeoutInterval: timeoutInterval)
+        let request = try await finalRequest(target: target, timeoutInterval: timeoutInterval)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -166,15 +166,15 @@ public struct ArachneProvider<T: ArachneService> {
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition.
     ///
-    /// The output request is not modified using the provided `signingFunction` or `requestModifier`, you may want to use ``buildCompleteRequest(target:timeoutInterval:)``.
+    /// The output request is not modified using the provided `signingFunction` or `requestModifier`, you may want to use ``finalRequest(target:timeoutInterval:)``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
+    @available(*, deprecated, message: "Use ArachneService.urlRequest() instead")
     public func buildRequest(target: T, timeoutInterval: Double? = nil) throws -> URLRequest {
-        let url = try URLUtil.composedUrl(for: target)
-        return URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
+        return try target.urlRequest()
     }
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the provided `signingFunction` or `requestModifier`, if any.
@@ -183,9 +183,19 @@ public struct ArachneProvider<T: ArachneService> {
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
+    @available(*, deprecated, renamed: "finalRequest(target:timeoutInterval:)", message: "Use finalRequest(target:timeoutInterval:) instead")
     public func buildCompleteRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
-        let url = try URLUtil.composedUrl(for: target)
-        var request = URLUtil.composedRequest(for: target, url: url, timeoutInterval: timeoutInterval)
+        return try await finalRequest(target: target, timeoutInterval: timeoutInterval)
+    }
+
+    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the provided `signingFunction` or `requestModifier`, if any.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - timeoutInterval: Optional timeout interval in seconds.
+    ///   Default value is the default of `URLRequest`: 60 seconds.
+    /// - Returns: The built `URLRequest`.
+    public func finalRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
+        var request = try target.urlRequest()
         try await modify(request: &request, target: target)
         return request
     }
@@ -205,6 +215,9 @@ public struct ArachneProvider<T: ArachneService> {
                                                  response: response as? HTTPURLResponse,
                                                  responseContent: data)
         }
+        if let expectedMimeType = target.expectedMimeType, httpResponse.mimeType != expectedMimeType {
+            throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: data)
+        }
         self.plugins?.forEach { $0.handle(response: response, data: data) }
         return (data, response)
     }
@@ -215,6 +228,9 @@ public struct ArachneProvider<T: ArachneService> {
             throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
                                                  response: response as? HTTPURLResponse,
                                                  responseContent: url)
+        }
+        if let expectedMimeType = target.expectedMimeType, httpResponse.mimeType != expectedMimeType {
+            throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: data)
         }
         self.plugins?.forEach { $0.handle(response: response, data: url) }
         return (url, response)

@@ -26,6 +26,9 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "ArachneTests",
-            dependencies: ["Arachne"])
+            dependencies: ["Arachne"],
+            resources: [
+                .process("Resources/image.png")
+            ])
     ]
 )

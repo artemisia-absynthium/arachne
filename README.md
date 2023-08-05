@@ -208,19 +208,13 @@ Go to your Project Settings > Swift Packages and add Arachne by entering `https:
 Add the following as a dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.2.0"))
+.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.5.0"))
 ```
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
 
 ### Cocoapods
 
-_Note: If you can choose, please use Swift Package Manager, support for Cocoapods may be discontinued in future versions of this library_
-
-Add the following entry to your `Podfile`:
-
-```ruby
-pod 'Arachne'
-```
+Support for CocoaPods has been discontinued since version 0.5.0, in order to install the latest version please use Swift Package Manager.
 
 ## Roadmap
 
