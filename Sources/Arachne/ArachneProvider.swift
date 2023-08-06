@@ -28,8 +28,8 @@ public struct ArachneProvider<T: ArachneService> {
     }
 
     /// Initialize a provider with a given `URLSession`, no plugins and no request modifier.
-    /// It can be used as a starting point to set plugins and request modifier with chained calls to ``with(plugins:)`` and ``with(requestModifier:)``.
-    /// - Parameter urlSession: Your `URLSession`. It uses the shared instance if none is passed.
+    /// After initializing an ``ArachneProvider`` you can add plugins and a request modifier to it by chaining calls to ``with(plugins:)`` and ``with(requestModifier:)``.
+    /// - Parameter urlSession: Your `URLSession`. It uses the `shared` instance if none is passed.
     public init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
         self.plugins = nil
@@ -72,13 +72,30 @@ public struct ArachneProvider<T: ArachneService> {
     ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The data retrieved from the endpoint, along with the response.
-    /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
-    /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
-    /// if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
+    ///   ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
+    ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
+    @available(*, deprecated, renamed: "data(target:session:)", message: "Use data(target:session:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
     public func data(_ target: T,
                      timeoutInterval: Double? = nil,
                      session: URLSession? = nil) async throws -> (Data, URLResponse) {
-        let request = try await finalRequest(target: target, timeoutInterval: timeoutInterval)
+        return try await data(target, session: session)
+    }
+
+    /// Make a request to an endpoint defined in an ``ArachneService``.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
+    /// - Returns: The data retrieved from the endpoint, along with the response.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
+    ///   ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
+    ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
+    public func data(_ target: T, session: URLSession? = nil) async throws -> (Data, URLResponse) {
+        let request = try await finalRequest(target: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -107,10 +124,10 @@ public struct ArachneProvider<T: ArachneService> {
 
     /// Download a resource from an endpoint defined in an ``ArachneService``.
     ///
-    /// **Since iOS 15** the downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
+    /// **Since iOS 15, macOS 12, tvOS 15, watchOS 8** the downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
     /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.download`.
     ///
-    /// **On iOS 14 and lower** the temporary file is copied in the user cache folder so you are responsible for removing the file
+    /// **On lower OS versions** the temporary file is copied in the user cache folder so you are responsible for removing the file
     /// when your app no longer needs it.
     /// - Parameters:
     ///   - target: An endpoint.
@@ -118,13 +135,36 @@ public struct ArachneProvider<T: ArachneService> {
     ///   Default value is the default of `URLRequest`: 60 seconds.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
     /// - Returns: The URL of the saved file, along with the response.
-    /// - Throws: The `URLError` thrown in your `signingFunction` or `signingPublisher`,
-    /// ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
-    ///  if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
+    ///   ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
+    ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
+    @available(*, deprecated, renamed: "download(target:session:)", message: "Use download(target:session:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
     public func download(_ target: T,
                          timeoutInterval: Double? = nil,
                          session: URLSession? = nil) async throws -> (URL, URLResponse) {
-        let request = try await finalRequest(target: target, timeoutInterval: timeoutInterval)
+        return try await download(target, session: session)
+    }
+
+    /// Download a resource from an endpoint defined in an ``ArachneService``.
+    ///
+    /// **Since iOS 15, macOS 12, tvOS 15, watchOS 8** the downloaded file must be copied in the appropriate folder to be used, because Arachne makes no assumption
+    /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.download`.
+    ///
+    /// **On lower OS versions** the temporary file is copied in the user cache folder so you are responsible for removing the file
+    /// when your app no longer needs it.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
+    /// - Returns: The URL of the saved file, along with the response.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from  the`requestModifier` you set using ``with(requestModifier:)``.
+    ///   ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
+    ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
+    ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
+    ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
+    public func download(_ target: T, session: URLSession? = nil) async throws -> (URL, URLResponse) {
+        let request = try await finalRequest(target: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -166,35 +206,36 @@ public struct ArachneProvider<T: ArachneService> {
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition.
     ///
-    /// The output request is not modified using the provided `signingFunction` or `requestModifier`, you may want to use ``finalRequest(target:timeoutInterval:)``.
+    /// The output request is not modified using the `requestModifier` you set using ``with(requestModifier:)``, you may want to use ``finalRequest(target:)``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
-    @available(*, deprecated, message: "Use ArachneService.urlRequest() instead")
+    /// - Throws: `URLError` if any of the request components are invalid.
+    @available(*, deprecated, message: "Use ArachneService.urlRequest() instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
     public func buildRequest(target: T, timeoutInterval: Double? = nil) throws -> URLRequest {
         return try target.urlRequest()
     }
 
-    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the provided `signingFunction` or `requestModifier`, if any.
+    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the `requestModifier` you set using ``with(requestModifier:)``, if any.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
     ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
-    @available(*, deprecated, renamed: "finalRequest(target:timeoutInterval:)", message: "Use finalRequest(target:timeoutInterval:) instead")
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
+    @available(*, deprecated, renamed: "finalRequest(target:)", message: "Use finalRequest(target:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
     public func buildCompleteRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
-        return try await finalRequest(target: target, timeoutInterval: timeoutInterval)
+        return try await finalRequest(target: target)
     }
 
-    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the provided `signingFunction` or `requestModifier`, if any.
+    /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the `requestModifier` you set using ``with(requestModifier:)``, if any.
     /// - Parameters:
     ///   - target: An endpoint.
-    ///   - timeoutInterval: Optional timeout interval in seconds.
-    ///   Default value is the default of `URLRequest`: 60 seconds.
     /// - Returns: The built `URLRequest`.
-    public func finalRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
+    public func finalRequest(target: T) async throws -> URLRequest {
         var request = try target.urlRequest()
         try await modify(request: &request, target: target)
         return request
