@@ -178,10 +178,10 @@ public struct ArachneProvider<T: ArachneService> {
             do {
                 let (url, response) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(URL, URLResponse), Error>) in
                     currentSession.downloadTask(with: request) { url, response, error in
-                        guard let url = url, let response = response, error == nil else {
-                            return continuation.resume(throwing: error!)
-                        }
                         do {
+                            guard let url = url, let response = response, error == nil else {
+                                throw error ?? ARError.missingData(url, response)
+                            }
                             let tempDestination = try FileManager.default
                                 .url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                                 .appendingPathComponent(url.lastPathComponent)
@@ -200,6 +200,99 @@ public struct ArachneProvider<T: ArachneService> {
                 throw handleAndReturn(error: error, request: request)
             }
         }
+    }
+
+    /// Download a resource from an endpoint defined in an ``ArachneService`` and allows to follow download progress and task cancellation.
+    ///
+    /// You can't pass a `URLSession` to this method because one will be created with a delegate managed by Arachne.
+    /// Instead you can pass a session configuration that will be used by the created session.
+    ///
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - sessionConfiguration: Optional session configuration to init the session. If `nil`, the provider session configuration will be used.
+    ///   - didWriteData: Called whenever data is written to file system with `bytesWritten`, `totalBytesWritten` and `totalBytesExpectedToWrite` parameters.
+    ///   - didCompleteTask: Called when the task is completed, it returns a `Swift.Result` object with the URL of the saved file,
+    ///   along with the response in case of success and the same errors thrown by ``download(_:session:)`` in case of failure.
+    /// - Returns: The download task, that can be used to cancel the download and get `Data` to resume it. You should keep a reference to the task to allow cancellation.
+    /// After cancelling the task you can resume it using ``download(_:withResumeData:sessionConfiguration:didResumeDownload:didWriteData:didCompleteTask:)``.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from  the`requestModifier` you set using ``with(requestModifier:)``.
+    public func download(_ target: T,
+                         sessionConfiguration: URLSessionConfiguration? = nil,
+                         didWriteData: @escaping (Int64, Int64, Int64) -> Void,
+                         didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
+        let request = try await finalRequest(target: target)
+        self.plugins?.forEach { $0.handle(request: request) }
+        let delegate = ArachneDownloadDelegate { _, _ in
+                // Nothing to do, this method is not used to resume download tasks
+            } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+            } didCompleteTask: { url, response, error in
+                do {
+                    guard let url = url, let response = response, error == nil else {
+                        throw error ?? ARError.missingData(url, response)
+                    }
+                    didCompleteTask(.success(
+                        try handleDownloadResponse(target: target, url: url, response: response)
+                    ))
+                } catch {
+                    didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
+                }
+            }
+
+        let session = URLSession(configuration: sessionConfiguration ?? urlSession.configuration, delegate: delegate, delegateQueue: nil)
+        let task = session.downloadTask(with: request)
+        task.resume()
+        return task
+    }
+
+    /// Resumes a download started using ``download(_:sessionConfiguration:didWriteData:didCompleteTask:)``
+    /// from an endpoint defined in an ``ArachneService`` and allows to follow download progress and task cancellation.
+    ///
+    /// The `Data` parameter has been obtained by calling `URLSessionDownloadTask.cancelByProducingResumeData()`.
+    ///
+    /// You can't pass a `URLSession` to this method because one will be created with a delegate managed by Arachne.
+    /// Instead you can pass a session configuration that will be used by the created session.
+    /// A good practice is to use the same session configuration used when calling ``download(_:sessionConfiguration:didWriteData:didCompleteTask:)``.
+    ///
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - withResumeData: The partial download `Data`.
+    ///   - sessionConfiguration: Optional session configuration to init the session. If `nil`, the provider session configuration will be used.
+    ///   - didResumeDownload: Called when download resumes with `fileOffset` and `expectedTotalBytes` parameters.
+    ///   - didWriteData: Called whenever data is written to file system with `bytesWritten`, `totalBytesWritten` and `totalBytesExpectedToWrite` parameters.
+    ///   - didCompleteTask: Called when the task is completed, it returns a `Swift.Result` object with the URL of the saved file,
+    ///   along with the response in case of success and the same errors thrown by ``download(_:session:)`` in case of failure.
+    /// - Returns: The download task, that can be used to cancel the download and get `Data` to resume it. You should keep a reference to the task to allow cancellation.
+    /// After cancelling the task you can resume it using ``download(_:withResumeData:sessionConfiguration:didResumeDownload:didWriteData:didCompleteTask:)``.
+    /// - Throws: `URLError` if any of the request components are invalid or the error thrown from  the`requestModifier` you set using ``with(requestModifier:)``.
+    public func download(_ target: T,
+                         withResumeData data: Data,
+                         sessionConfiguration: URLSessionConfiguration? = nil,
+                         didResumeDownload: @escaping (Int64, Int64) -> Void,
+                         didWriteData: @escaping (Int64, Int64, Int64) -> Void,
+                         didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
+        let request = try await finalRequest(target: target)
+        let delegate = ArachneDownloadDelegate { fileOffset, expectedTotalBytes in
+                didResumeDownload(fileOffset, expectedTotalBytes)
+            } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+            } didCompleteTask: { url, response, error in
+                do {
+                    guard let url = url, let response = response, error == nil else {
+                        throw error ?? ARError.missingData(url, response)
+                    }
+                    didCompleteTask(.success(
+                        try handleDownloadResponse(target: target, url: url, response: response)
+                    ))
+                } catch {
+                    didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
+                }
+            }
+
+        let session = URLSession(configuration: sessionConfiguration ?? urlSession.configuration, delegate: delegate, delegateQueue: nil)
+        let task = session.downloadTask(withResumeData: data)
+        task.resume()
+        return task
     }
 
     // MARK: - URLRequest
@@ -278,14 +371,14 @@ public struct ArachneProvider<T: ArachneService> {
     }
 
     private func handleAndReturn(error: Error, request: URLRequest) -> Error {
-        let output = self.extractOutput(from: error)
+        let output = extractOutput(from: error)
         self.plugins?.forEach { $0.handle(error: error, request: request, output: output) }
         return error
     }
 
     private func extractOutput(from error: Error) -> Any? {
         var output: Any?
-        if let error = error as? ARError, case .unacceptableStatusCode(_, _, let responseContent) = error {
+        if case ARError.unacceptableStatusCode(_, _, let responseContent) = error {
             output = responseContent
         }
         return output

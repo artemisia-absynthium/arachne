@@ -35,13 +35,22 @@ public enum ARError: Error {
     ///    - `URL`, the temporary downloaded file URL,
     ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
     case unexpectedMimeType(mimeType: String?, response: HTTPURLResponse, responseContent: Any)
+
+    /// Error thrown if a download task returns with no error but either one of URL or URLResponse is nil.
+    ///
+    /// It should never happen, it's been defined to ensure code correctness.
+    ///
+    /// The fields returned in the error are:
+    ///  - url: The oprional downloaded file URL
+    ///  - urlResponse: The optional response returned from the server
+    case missingData(URL?, URLResponse?)
 }
 
 public extension ARError {
     /// The optional underlying error that caused `ARError` to be thrown
     internal var underlyingError: Error? {
         switch self {
-        case .unacceptableStatusCode, .unexpectedMimeType:
+        case .unacceptableStatusCode, .unexpectedMimeType, .missingData:
             return nil
         }
     }
@@ -57,6 +66,8 @@ extension ARError: LocalizedError {
             return "Unacceptable status code: \(String(describing: code))"
         case .unexpectedMimeType(let mimeType, _, _):
             return "Unexpected mime type: \(String(describing: mimeType))"
+        case .missingData(let url, let response):
+            return "Either one of URL or URLResponse are missing: URL=\(String(describing: url)), URLResponse=\(String(describing: response))"
         }
     }
 }
@@ -75,6 +86,8 @@ extension ARError: CustomNSError {
             return 901
         case .unexpectedMimeType:
             return 902
+        case .missingData:
+            return 903
         }
     }
 }

@@ -15,6 +15,11 @@
 - ``download(_:session:)``
 - ``download(_:timeoutInterval:session:)``
 
+### Performing interruptible downloads
+
+- ``download(_:sessionConfiguration:didWriteData:didCompleteTask:)``
+- ``download(_:withResumeData:sessionConfiguration:didResumeDownload:didWriteData:didCompleteTask:)``
+
 ### Just build your URLRequest
 
 - ``finalRequest(target:)``

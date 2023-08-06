@@ -149,6 +149,97 @@ final class ArachneTests: XCTestCase {
         wait(for: [expectation], timeout: 20)
     }
 
+    func testDownloadStatus() throws {
+        let expectation = XCTestExpectation(description: "I can follow download status")
+        expectation.expectedFulfillmentCount = 4
+
+        let failExpectation = XCTestExpectation(description: "Task doesn't fail")
+        failExpectation.isInverted = true
+
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                    expectation.fulfill()
+                } didCompleteTask: { result in
+                    switch result {
+                    case .success((let url, let response)):
+                        XCTAssertNotNil(url)
+                        XCTAssertNotNil(response)
+                        let fileExists = FileManager.default.fileExists(atPath: url.path)
+                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                        let httpResponse = response as? HTTPURLResponse
+                        XCTAssertNotNil(httpResponse)
+                        XCTAssertEqual(httpResponse?.statusCode, 200)
+                        expectation.fulfill()
+                    case .failure(let error):
+                        XCTFail("Unexpected error: \(error.localizedDescription)")
+                        failExpectation.fulfill()
+                    }
+                }
+                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                    expectation.fulfill()
+                } didCompleteTask: { result in
+                    switch result {
+                    case .success((let url, let response)):
+                        XCTAssertNotNil(url)
+                        XCTAssertNotNil(response)
+                        let fileExists = FileManager.default.fileExists(atPath: url.path)
+                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                        expectation.fulfill()
+                    case .failure(let error):
+                        XCTFail("Unexpected error: \(error.localizedDescription)")
+                        failExpectation.fulfill()
+                    }
+                }
+            }
+        }
+
+        wait(for: [expectation, failExpectation], timeout: timeout)
+    }
+
+    func testCancelAndResumeDownload() throws {
+        let expectation = XCTestExpectation(description: "I can cancel and resume a download")
+        expectation.expectedFulfillmentCount = 3
+
+        let failExpectation = XCTestExpectation(description: "Task doesn't fail")
+        failExpectation.isInverted = true
+
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            let task = try await provider.download(.fileDownload) { _, _, _ in
+                // Nothing to do
+            } didCompleteTask: { _ in
+                failExpectation.fulfill()
+            }
+
+            guard let data = await task.cancelByProducingResumeData() else {
+                return failExpectation.fulfill()
+            }
+
+            _ = try await provider.download(.fileDownload, withResumeData: data) { fileOffset, expectedTotalBytes in
+                expectation.fulfill()
+            } didWriteData: { _, _, _ in
+                expectation.fulfill()
+            } didCompleteTask: { result in
+                switch result {
+                case .success((let url, let response)):
+                    XCTAssertNotNil(url)
+                    XCTAssertNotNil(response)
+                    let fileExists = FileManager.default.fileExists(atPath: url.path)
+                    XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                    expectation.fulfill()
+                case .failure(let error):
+                    XCTFail("Unexpected error: \(error.localizedDescription)")
+                    failExpectation.fulfill()
+                }
+            }
+        }
+
+    }
+
     func testResponseHasUnacceptableStatusCode() throws {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
 
@@ -168,7 +259,7 @@ final class ArachneTests: XCTestCase {
                     XCTAssertNotNil(data)
                     XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
                     expectation.fulfill()
-                case .unexpectedMimeType:
+                case .unexpectedMimeType, .missingData:
                     XCTFail("This is not the error you are looking for")
                 }
             } catch {
@@ -199,7 +290,7 @@ final class ArachneTests: XCTestCase {
                     XCTAssertNotNil(data)
                     XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
                     expectation.fulfill()
-                case .unexpectedMimeType:
+                case .unexpectedMimeType, .missingData:
                     XCTFail("This is not the error you are looking for")
                 }
             } catch {
@@ -228,7 +319,7 @@ final class ArachneTests: XCTestCase {
                     XCTAssertEqual(mimeType, "text/plain")
                     XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
                     expectation.fulfill()
-                case .unacceptableStatusCode:
+                case .unacceptableStatusCode, .missingData:
                     XCTFail("This is not the error you are looking for")
                 }
             } catch {
