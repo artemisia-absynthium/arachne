@@ -14,6 +14,6 @@ struct MyModel: Decodable, Equatable {
     let field: String
 
     static func == (lhs: MyModel, rhs: MyModel) -> Bool {
-        return lhs.field == rhs.field
+        lhs.field == rhs.field
     }
 }

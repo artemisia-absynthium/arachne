@@ -78,9 +78,9 @@ public struct ArachneProvider<T: ArachneService> {
     ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
     ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
     @available(*, deprecated, renamed: "data(target:session:)", message: "Use data(target:session:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
-    public func data(_ target: T,
-                     timeoutInterval: Double? = nil,
-                     session: URLSession? = nil) async throws -> (Data, URLResponse) {
+    public nonisolated func data(_ target: T,
+                                 timeoutInterval: Double? = nil,
+                                 session: URLSession? = nil) async throws -> (Data, URLResponse) {
         return try await data(target, session: session)
     }
 
@@ -94,8 +94,8 @@ public struct ArachneProvider<T: ArachneService> {
     ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
     ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
-    public func data(_ target: T, session: URLSession? = nil) async throws -> (Data, URLResponse) {
-        let request = try await finalRequest(target: target)
+    public nonisolated func data(_ target: T, session: URLSession? = nil) async throws -> (Data, URLResponse) {
+        let request = try await urlRequest(for: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -141,9 +141,9 @@ public struct ArachneProvider<T: ArachneService> {
     ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
     ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
     @available(*, deprecated, renamed: "download(target:session:)", message: "Use download(target:session:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
-    public func download(_ target: T,
-                         timeoutInterval: Double? = nil,
-                         session: URLSession? = nil) async throws -> (URL, URLResponse) {
+    public nonisolated func download(_ target: T,
+                                     timeoutInterval: Double? = nil,
+                                     session: URLSession? = nil) async throws -> (URL, URLResponse) {
         return try await download(target, session: session)
     }
 
@@ -163,8 +163,8 @@ public struct ArachneProvider<T: ArachneService> {
     ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
     ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
     ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
-    public func download(_ target: T, session: URLSession? = nil) async throws -> (URL, URLResponse) {
-        let request = try await finalRequest(target: target)
+    public nonisolated func download(_ target: T, session: URLSession? = nil) async throws -> (URL, URLResponse) {
+        let request = try await urlRequest(for: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
@@ -216,11 +216,11 @@ public struct ArachneProvider<T: ArachneService> {
     /// - Returns: The download task, that can be used to cancel the download and get `Data` to resume it. You should keep a reference to the task to allow cancellation.
     /// After cancelling the task you can resume it using ``download(_:withResumeData:sessionConfiguration:didResumeDownload:didWriteData:didCompleteTask:)``.
     /// - Throws: `URLError` if any of the request components are invalid or the error thrown from  the`requestModifier` you set using ``with(requestModifier:)``.
-    public func download(_ target: T,
-                         sessionConfiguration: URLSessionConfiguration? = nil,
-                         didWriteData: @escaping (Int64, Int64, Int64) -> Void,
-                         didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
-        let request = try await finalRequest(target: target)
+    public nonisolated func download(_ target: T,
+                                     sessionConfiguration: URLSessionConfiguration? = nil,
+                                     didWriteData: @escaping (Int64, Int64, Int64) -> Void,
+                                     didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
+        let request = try await urlRequest(for: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let delegate = ArachneDownloadDelegate { _, _ in
                 // Nothing to do, this method is not used to resume download tasks
@@ -265,13 +265,13 @@ public struct ArachneProvider<T: ArachneService> {
     /// - Returns: The download task, that can be used to cancel the download and get `Data` to resume it. You should keep a reference to the task to allow cancellation.
     /// After cancelling the task you can resume it using ``download(_:withResumeData:sessionConfiguration:didResumeDownload:didWriteData:didCompleteTask:)``.
     /// - Throws: `URLError` if any of the request components are invalid or the error thrown from  the`requestModifier` you set using ``with(requestModifier:)``.
-    public func download(_ target: T,
-                         withResumeData data: Data,
-                         sessionConfiguration: URLSessionConfiguration? = nil,
-                         didResumeDownload: @escaping (Int64, Int64) -> Void,
-                         didWriteData: @escaping (Int64, Int64, Int64) -> Void,
-                         didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
-        let request = try await finalRequest(target: target)
+    public nonisolated func download(_ target: T,
+                                     withResumeData data: Data,
+                                     sessionConfiguration: URLSessionConfiguration? = nil,
+                                     didResumeDownload: @escaping (Int64, Int64) -> Void,
+                                     didWriteData: @escaping (Int64, Int64, Int64) -> Void,
+                                     didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
+        let request = try await urlRequest(for: target)
         let delegate = ArachneDownloadDelegate { fileOffset, expectedTotalBytes in
                 didResumeDownload(fileOffset, expectedTotalBytes)
             } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
@@ -307,7 +307,7 @@ public struct ArachneProvider<T: ArachneService> {
     /// - Returns: The built `URLRequest`.
     /// - Throws: `URLError` if any of the request components are invalid.
     @available(*, deprecated, message: "Use ArachneService.urlRequest() instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
-    public func buildRequest(target: T, timeoutInterval: Double? = nil) throws -> URLRequest {
+    public nonisolated func buildRequest(target: T, timeoutInterval: Double? = nil) throws -> URLRequest {
         return try target.urlRequest()
     }
 
@@ -319,8 +319,8 @@ public struct ArachneProvider<T: ArachneService> {
     /// - Returns: The built `URLRequest`.
     /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
     @available(*, deprecated, renamed: "finalRequest(target:)", message: "Use finalRequest(target:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
-    public func buildCompleteRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
-        return try await finalRequest(target: target)
+    public nonisolated func buildCompleteRequest(target: T, timeoutInterval: Double? = nil) async throws -> URLRequest {
+        return try await urlRequest(for: target)
     }
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition, modified using the `requestModifier` you set using ``with(requestModifier:)``, if any.
@@ -328,7 +328,7 @@ public struct ArachneProvider<T: ArachneService> {
     ///   - target: An endpoint.
     /// - Returns: The built `URLRequest`.
     /// - Throws: `URLError` if any of the request components are invalid or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
-    public func finalRequest(target: T) async throws -> URLRequest {
+    public nonisolated func urlRequest(for target: T) async throws -> URLRequest {
         var request = try target.urlRequest()
         try await modify(request: &request, target: target)
         return request
@@ -336,13 +336,13 @@ public struct ArachneProvider<T: ArachneService> {
 
     // MARK: - Internal methods
 
-    private func modify(request: inout URLRequest, target: T) async throws {
+    private nonisolated func modify(request: inout URLRequest, target: T) async throws {
         if let requestModifier = requestModifier {
             try await requestModifier(target, &request)
         }
     }
 
-    private func handleDataResponse(target: T, data: Data, response: URLResponse) throws -> (Data, URLResponse) {
+    private nonisolated func handleDataResponse(target: T, data: Data, response: URLResponse) throws -> (Data, URLResponse) {
         guard let httpResponse = response as? HTTPURLResponse,
               target.validCodes.contains(httpResponse.statusCode) else {
             throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
@@ -356,7 +356,7 @@ public struct ArachneProvider<T: ArachneService> {
         return (data, response)
     }
 
-    private func handleDownloadResponse(target: T, url: URL, response: URLResponse) throws -> (URL, URLResponse) {
+    private nonisolated func handleDownloadResponse(target: T, url: URL, response: URLResponse) throws -> (URL, URLResponse) {
         guard let httpResponse = response as? HTTPURLResponse,
               target.validCodes.contains(httpResponse.statusCode) else {
             throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
@@ -370,13 +370,13 @@ public struct ArachneProvider<T: ArachneService> {
         return (url, response)
     }
 
-    private func handleAndReturn(error: Error, request: URLRequest) -> Error {
+    private nonisolated func handleAndReturn(error: Error, request: URLRequest) -> Error {
         let output = extractOutput(from: error)
         self.plugins?.forEach { $0.handle(error: error, request: request, output: output) }
         return error
     }
 
-    private func extractOutput(from error: Error) -> Any? {
+    private nonisolated func extractOutput(from error: Error) -> Any? {
         var output: Any?
         if case ARError.unacceptableStatusCode(_, _, let responseContent) = error {
             output = responseContent

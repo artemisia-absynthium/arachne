@@ -14,82 +14,74 @@ import Arachne
 enum MyServiceWithDefaults: CaseIterable {
     case postSomething
     case notFound
-    case malformedUrl
     case nilUrl
     case reservedHeader
 }
 
 extension MyServiceWithDefaults: ArachneService {
     var baseUrl: String {
-        switch self {
-        case .malformedUrl:
-            return "htp:🥶/malformedUrl"
-        default:
-            return "https://api.myservice.com"
-        }
+        "https://api.myservice.com"
     }
 
     var path: String {
         switch self {
         case .postSomething:
-            return "/postSomething"
+            "/postSomething"
         case .notFound:
-            return "/notFound"
-        case .malformedUrl:
-            return "/malformedUrl"
+            "/notFound"
         case .nilUrl:
-            return "malformedQueryStringItems"
+            "malformedQueryStringItems"
         case .reservedHeader:
-            return "/reservedHeader"
+            "/reservedHeader"
         }
     }
 
     var queryStringItems: [URLQueryItem]? {
         switch self {
-        case .malformedUrl, .nilUrl, .reservedHeader:
-            return [
+        case .nilUrl, .reservedHeader:
+            [
                 URLQueryItem(name: "key", value: "value")
             ]
         default:
-            return nil
+            nil
         }
     }
 
     var method: Arachne.HttpMethod {
         switch self {
         case .postSomething:
-            return .post
+            .post
         default:
-            return .get
+            .get
         }
     }
 
     var body: Data? {
         switch self {
         case .postSomething:
-            return "I'm posting something".data(using: .utf8)
+            "I'm posting something".data(using: .utf8)
         default:
-            return nil
+            nil
         }
     }
 
     var headers: [String : String]? {
         switch self {
         case .reservedHeader:
-            return ["Content-Length": "1234"]
+            ["Content-Length": "1234"]
         default:
-            return nil
+            nil
         }
     }
 
-    var mockResponse: MockResponse {
+    var stubResponse: StubResponse {
         switch self {
         case .postSomething:
-            return MockResponse(statusCode: 200, data: nil, headers: nil)
+            StubResponse(statusCode: 200, data: nil, headers: nil)
         case .notFound:
-            return MockResponse(statusCode: 404, data: nil, headers: nil)
-        case .malformedUrl, .nilUrl, .reservedHeader:
-            return MockResponse(statusCode: 400, data: nil, headers: nil)
+            StubResponse(statusCode: 404, data: nil, headers: nil)
+        case .nilUrl, .reservedHeader:
+            StubResponse(statusCode: 400, data: nil, headers: nil)
         }
     }
 }

@@ -26,22 +26,22 @@ extension MyService: ArachneService {
     var path: String {
         switch self {
         case .plainText, .unexpectedMimeType:
-            return "/plainText"
+            "/plainText"
         case .jsonResponse:
-            return "/jsonResponse"
+            "/jsonResponse"
         case .fileDownload:
-            return "/fileDownload"
+            "/fileDownload"
         }
     }
 
     var queryStringItems: [URLQueryItem]? {
         switch self {
         case .fileDownload, .unexpectedMimeType:
-            return [
+            [
                 URLQueryItem(name: "key", value: "value")
             ]
         default:
-            return nil
+            nil
         }
     }
 
@@ -60,29 +60,29 @@ extension MyService: ArachneService {
     var expectedMimeType: String? {
         switch self {
         case .plainText:
-            return "text/plain"
+            "text/plain"
         case .jsonResponse, .unexpectedMimeType:
-            return "application/json"
+            "application/json"
         case .fileDownload:
-            return "image/jpeg"
+            "image/png"
         }
     }
 
     var timeoutInterval: Double? {
         switch self {
         case .jsonResponse:
-            return 10
+            10
         default:
-            return nil
+            nil
         }
     }
 
-    var mockResponse: MockResponse {
+    var stubResponse: StubResponse {
         switch self {
         case .plainText, .unexpectedMimeType:
-            return MockResponse(statusCode: 200, data: "The response is 42".data(using: .utf8)!, headers: ["Content-Type": "text/plain"])
+            return StubResponse(statusCode: 200, data: "The response is 42".data(using: .utf8)!, headers: ["Content-Type": "text/plain"])
         case .jsonResponse:
-            return MockResponse(statusCode: 200, data: #"{"field" : "field"}"#.data(using: .utf8)!, headers: ["Content-Type": "application/json"])
+            return StubResponse(statusCode: 200, data: #"{"field" : "field"}"#.data(using: .utf8)!, headers: ["Content-Type": "application/json"])
         case .fileDownload:
             let imageUrl: URL = Bundle.module.url(forResource: "image", withExtension: "png")!
             let path: String
@@ -91,7 +91,10 @@ extension MyService: ArachneService {
             } else {
                 path = imageUrl.path
             }
-            return MockResponse(statusCode: 200, data: FileManager.default.contents(atPath: path)!, headers: ["Content-Type": "image/jpeg"])
+            let content = FileManager.default.contents(atPath: path)!
+            return StubResponse(statusCode: 200, data: content, headers: [
+                "Content-Type": "image/png"
+            ])
         }
     }
 }

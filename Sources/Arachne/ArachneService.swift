@@ -56,13 +56,13 @@ public extension ArachneService {
     /// Utility method to get the full `URL` for a target
     /// - Throws: `URLError` if any of the `URL` components are invalid.
     func url() throws -> URL {
-        return try URLUtil.composedUrl(for: self)
+        return try composedUrl(for: self)
     }
 
     /// Utility method to get the `URLRequest` for a target
     /// - Throws: `URLError` if any of the `URL` components are invalid.
     /// > TIp: The output request is not modified using the `requestModifier` you set using ``ArachneProvider/with(requestModifier:)``, you may want to use ``ArachneProvider/finalRequest(target:)``.
     func urlRequest() throws -> URLRequest {
-        return URLUtil.composedRequest(for: self, url: try url(), timeoutInterval: timeoutInterval)
+        return composedRequest(for: self, url: try url(), timeoutInterval: timeoutInterval)
     }
 }

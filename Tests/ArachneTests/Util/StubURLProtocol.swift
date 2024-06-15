@@ -1,5 +1,5 @@
 //
-// MockURLProtocol.swift - Mock URL protocol that responds to requests locally
+// StubURLProtocol.swift - Stub URL protocol that responds to requests locally
 // This source file is part of the Arachne open source project
 //
 // Copyright (c) 2023 artemisia-absynthium
@@ -9,12 +9,16 @@
 //
 
 import Foundation
+import os
 
 /// Inspired by https://www.theinkedengineer.com/articles/mocking-requests-using-url-protocol
-class MockURLProtocol: URLProtocol {
-    static var mockExchanges: Set<MockNetworkExchange> = []
+class StubURLProtocol: URLProtocol {
+    static var stubExchanges: Set<StubNetworkExchange> = []
+    private var isCancelled = false
+    
+    private let logger = Logger(subsystem: "ArachneTests", category: "StubURLProtocol")
 
-    override class func canInit(with request: URLRequest) -> Bool {
+    override class func canInit(with task: URLSessionTask) -> Bool {
         true
     }
 
@@ -27,7 +31,7 @@ class MockURLProtocol: URLProtocol {
             client?.urlProtocolDidFinishLoading(self)
         }
 
-        guard let foundExchange = Self.mockExchanges.first(where: {
+        guard let foundExchange = Self.stubExchanges.first(where: {
             $0.urlRequest.url == request.url &&
             $0.urlRequest.url?.path == request.url?.path &&
             $0.urlRequest.httpMethod == request.httpMethod &&
@@ -37,17 +41,35 @@ class MockURLProtocol: URLProtocol {
             return
         }
 
-        if let data = foundExchange.response.data {
-            client?.urlProtocol(self, didLoad: data)
-        }
-
         client?.urlProtocol(self, didReceive: foundExchange.urlResponse, cacheStoragePolicy: .notAllowed)
+
+        if let data = foundExchange.response.data {
+            sendDataInChunks(data: data)
+        }
     }
 
-    override func stopLoading() {}
+    override func stopLoading() {
+        isCancelled = true
+    }
+    
+    private func sendDataInChunks(data: Data) {
+        let chunkSize = 1024 * 30 // 30KB chunks
+        var offset = 0
+        
+        while offset < data.count && !isCancelled {
+            let chunk = data.subdata(in: offset..<min(offset + chunkSize, data.count))
+            client?.urlProtocol(self, didLoad: chunk)
+            offset += chunkSize
+            Thread.sleep(forTimeInterval: 0.1) // Simulate network delay
+        }
+        
+        if !isCancelled {
+            client?.urlProtocolDidFinishLoading(self)
+        }
+    }
 }
 
-struct MockResponse {
+struct StubResponse {
     /// Response HTTP status code
     let statusCode: Int
 
@@ -58,8 +80,8 @@ struct MockResponse {
     let headers: [String: String]?
 }
 
-struct MockNetworkExchange: Hashable {
-    static func == (lhs: MockNetworkExchange, rhs: MockNetworkExchange) -> Bool {
+struct StubNetworkExchange: Hashable {
+    static func == (lhs: StubNetworkExchange, rhs: StubNetworkExchange) -> Bool {
         lhs.urlRequest.url == rhs.urlRequest.url &&
         lhs.urlRequest.url?.path == rhs.urlRequest.url?.path &&
         lhs.urlRequest.httpMethod == rhs.urlRequest.httpMethod &&
@@ -76,10 +98,10 @@ struct MockNetworkExchange: Hashable {
     /// The `URLRequest` associated to this exchange.
     let urlRequest: URLRequest
 
-    /// The mock response of the exchange.
-    let response: MockResponse
+    /// The stub response of the exchange.
+    let response: StubResponse
 
-    /// The expected `HTTPURLResponse` built from the `MockResponse`.
+    /// The expected `HTTPURLResponse` built from the `StubResponse`.
     var urlResponse: HTTPURLResponse {
         HTTPURLResponse(
             url: urlRequest.url!,
