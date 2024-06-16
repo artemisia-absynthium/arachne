@@ -2,7 +2,7 @@
 // ArachneProvider.swift - the provider implementation
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Copyright (c) 2021 - 2024 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
@@ -64,6 +64,19 @@ public struct ArachneProvider<T: ArachneService> {
     }
 
     // MARK: - Tasks
+    
+    @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
+    public nonisolated func bytes(_ target: T, session: URLSession? = nil) async throws -> (URLSession.AsyncBytes, URLResponse) {
+        let request = try await urlRequest(for: target)
+        self.plugins?.forEach { $0.handle(request: request) }
+        let currentSession = session ?? self.urlSession
+        do {
+            let (bytes, response) = try await currentSession.bytes(for: request)
+            return try handleResponse(target: target, data: bytes, output: .other(bytes), response: response)
+        } catch {
+            throw handleAndReturn(error: error, request: request)
+        }
+    }
 
     /// Make a request to an endpoint defined in an ``ArachneService``.
     /// - Parameters:
@@ -101,7 +114,7 @@ public struct ArachneProvider<T: ArachneService> {
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
             do {
                 let (data, response) = try await currentSession.data(for: request)
-                return try handleDataResponse(target: target, data: data, response: response)
+                return try handleResponse(target: target, data: data, output: .data(data), response: response)
             } catch {
                 throw handleAndReturn(error: error, request: request)
             }
@@ -115,7 +128,7 @@ public struct ArachneProvider<T: ArachneService> {
                         continuation.resume(returning: (data, response))
                     }.resume()
                 }
-                return try handleDataResponse(target: target, data: data, response: response)
+                return try handleResponse(target: target, data: data, output: .data(data), response: response)
             } catch {
                 throw handleAndReturn(error: error, request: request)
             }
@@ -170,7 +183,7 @@ public struct ArachneProvider<T: ArachneService> {
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
             do {
                 let (url, response) = try await currentSession.download(for: request)
-                return try handleDownloadResponse(target: target, url: url, response: response)
+                return try handleResponse(target: target, data: url, output: .url(url), response: response)
             } catch {
                 throw handleAndReturn(error: error, request: request)
             }
@@ -195,7 +208,7 @@ public struct ArachneProvider<T: ArachneService> {
                         }
                     }.resume()
                 }
-                return try handleDownloadResponse(target: target, url: url, response: response)
+                return try handleResponse(target: target, data: url, output: .url(url), response: response)
             } catch {
                 throw handleAndReturn(error: error, request: request)
             }
@@ -223,21 +236,21 @@ public struct ArachneProvider<T: ArachneService> {
         let request = try await urlRequest(for: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let delegate = ArachneDownloadDelegate { _, _ in
-                // Nothing to do, this method is not used to resume download tasks
-            } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-                didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
-            } didCompleteTask: { url, response, error in
-                do {
-                    guard let url = url, let response = response, error == nil else {
-                        throw error ?? ARError.missingData(url, response)
-                    }
-                    didCompleteTask(.success(
-                        try handleDownloadResponse(target: target, url: url, response: response)
-                    ))
-                } catch {
-                    didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
+            // Nothing to do, this method is used to resume download tasks
+        } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+            didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+        } didCompleteTask: { url, response, error in
+            do {
+                guard let url = url, let response = response, error == nil else {
+                    throw error ?? ARError.missingData(url, response)
                 }
+                didCompleteTask(.success(
+                    try handleResponse(target: target, data: url, output: .url(url), response: response)
+                ))
+            } catch {
+                didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
             }
+        }
 
         let session = URLSession(configuration: sessionConfiguration ?? urlSession.configuration, delegate: delegate, delegateQueue: nil)
         let task = session.downloadTask(with: request)
@@ -273,21 +286,21 @@ public struct ArachneProvider<T: ArachneService> {
                                      didCompleteTask: @escaping (Result<(URL, URLResponse), Error>) -> Void) async throws -> URLSessionDownloadTask {
         let request = try await urlRequest(for: target)
         let delegate = ArachneDownloadDelegate { fileOffset, expectedTotalBytes in
-                didResumeDownload(fileOffset, expectedTotalBytes)
-            } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-                didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
-            } didCompleteTask: { url, response, error in
-                do {
-                    guard let url = url, let response = response, error == nil else {
-                        throw error ?? ARError.missingData(url, response)
-                    }
-                    didCompleteTask(.success(
-                        try handleDownloadResponse(target: target, url: url, response: response)
-                    ))
-                } catch {
-                    didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
+            didResumeDownload(fileOffset, expectedTotalBytes)
+        } didWriteData: { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+            didWriteData(bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+        } didCompleteTask: { url, response, error in
+            do {
+                guard let url = url, let response = response, error == nil else {
+                    throw error ?? ARError.missingData(url, response)
                 }
+                didCompleteTask(.success(
+                    try handleResponse(target: target, data: url, output: .url(url), response: response)
+                ))
+            } catch {
+                didCompleteTask(.failure(handleAndReturn(error: error, request: request)))
             }
+        }
 
         let session = URLSession(configuration: sessionConfiguration ?? urlSession.configuration, delegate: delegate, delegateQueue: nil)
         let task = session.downloadTask(withResumeData: data)
@@ -341,33 +354,19 @@ public struct ArachneProvider<T: ArachneService> {
             try await requestModifier(target, &request)
         }
     }
-
-    private nonisolated func handleDataResponse(target: T, data: Data, response: URLResponse) throws -> (Data, URLResponse) {
+    
+    private nonisolated func handleResponse<DataType>(target: T, data: DataType, output: AROutput, response: URLResponse) throws -> (DataType, URLResponse) {
         guard let httpResponse = response as? HTTPURLResponse,
               target.validCodes.contains(httpResponse.statusCode) else {
             throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
                                                  response: response as? HTTPURLResponse,
-                                                 responseContent: data)
+                                                 responseContent: output)
         }
         if let expectedMimeType = target.expectedMimeType, httpResponse.mimeType != expectedMimeType {
-            throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: data)
+            throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: output)
         }
-        self.plugins?.forEach { $0.handle(response: response, data: data) }
+        self.plugins?.forEach { $0.handle(response: response, output: output) }
         return (data, response)
-    }
-
-    private nonisolated func handleDownloadResponse(target: T, url: URL, response: URLResponse) throws -> (URL, URLResponse) {
-        guard let httpResponse = response as? HTTPURLResponse,
-              target.validCodes.contains(httpResponse.statusCode) else {
-            throw ARError.unacceptableStatusCode(statusCode: (response as? HTTPURLResponse)?.statusCode,
-                                                 response: response as? HTTPURLResponse,
-                                                 responseContent: url)
-        }
-        if let expectedMimeType = target.expectedMimeType, httpResponse.mimeType != expectedMimeType {
-            throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: data)
-        }
-        self.plugins?.forEach { $0.handle(response: response, data: url) }
-        return (url, response)
     }
 
     private nonisolated func handleAndReturn(error: Error, request: URLRequest) -> Error {
@@ -376,8 +375,8 @@ public struct ArachneProvider<T: ArachneService> {
         return error
     }
 
-    private nonisolated func extractOutput(from error: Error) -> Any? {
-        var output: Any?
+    private nonisolated func extractOutput(from error: Error) -> AROutput? {
+        var output: AROutput?
         if case ARError.unacceptableStatusCode(_, _, let responseContent) = error {
             output = responseContent
         }

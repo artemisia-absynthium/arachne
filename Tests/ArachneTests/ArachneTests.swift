@@ -2,7 +2,7 @@
 // ArachneTests.swift - test suite
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Copyright (c) 2021 - 2024 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
@@ -176,12 +176,34 @@ final class ArachneTests: XCTestCase {
 
         wait(for: [completeDownloadExpectation, writeDataExpectation], timeout: timeout)
     }
+    
+    func testBytes() throws {
+        let expectation = XCTestExpectation(description: "I can download bytes")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                var count = 0
+                let (bytes, response) = try await provider.bytes(.fileDownload)
+                for try await _ in bytes {
+                    count += 1
+                }
+                let httpUrlResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpUrlResponse)
+                XCTAssertEqual(httpUrlResponse?.statusCode, 200)
+                XCTAssertEqual(count, 114521, "Unexpected number of bytes")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+    }
 
     func testResponseHasUnacceptableStatusCode() throws {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
         let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
                                                            response: HTTPURLResponse(),
-                                                           responseContent: Data())
+                                                           responseContent: .data(Data()))
 
         let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
@@ -211,7 +233,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
         let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
                                                            response: HTTPURLResponse(),
-                                                           responseContent: Data())
+                                                           responseContent: .data(Data()))
 
         let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
@@ -242,7 +264,7 @@ final class ArachneTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Response has unexpected mime type")
         let expectedError = ARError.unexpectedMimeType(mimeType: "text/plain",
                                                        response: HTTPURLResponse(),
-                                                       responseContent: Data())
+                                                       responseContent: .data(Data()))
 
         let provider = ArachneProvider<MyService>(urlSession: session)
         Task {
@@ -271,8 +293,8 @@ final class ArachneTests: XCTestCase {
         struct TestPlugin: ArachnePlugin {
             let errorExpectation: XCTestExpectation
             let requestExpectation: XCTestExpectation
-
-            func handle(error: Error, request: URLRequest, output: Any?) {
+            
+            func handle(error: any Error, request: URLRequest, output: AROutput?) {
                 XCTAssertEqual(request.url?.absoluteString,
                                try? MyServiceWithDefaults.notFound.url().absoluteString,
                                "Request URL in error is not equal to expected URL")
@@ -285,7 +307,7 @@ final class ArachneTests: XCTestCase {
                 requestExpectation.fulfill()
             }
 
-            func handle(response: URLResponse, data: Any) {
+            func handle(response: URLResponse, output: AROutput) {
                 XCTFail("Should not have been called")
                 errorExpectation.fulfill()
                 requestExpectation.fulfill()

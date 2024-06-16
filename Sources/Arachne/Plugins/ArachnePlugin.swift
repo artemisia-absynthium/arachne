@@ -2,7 +2,7 @@
 // ArachnePlugin.swift - protocol for implementing plugins
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Copyright (c) 2021 - 2024 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
@@ -19,21 +19,13 @@ public protocol ArachnePlugin {
     /// This function gets called immediately before returning a response.
     /// - Parameters:
     ///   - response: the `URLResponse`.
-    ///   - data: the data retrieved from the resource, it can be
-    ///     - `Data`, containing the response body, in case you used
-    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
-    ///     - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
-    func handle(response: URLResponse, data: Any)
+    ///   - output: the output retrieved from the resource, conveniently wrapped in an enum with the possible data types
+    func handle(response: URLResponse, output: AROutput)
 
     /// This function gets called whenever an error occurs, immediately before throwing it,
     /// - Parameters:
     ///   - error: the error that will be thrown.
     ///   - request: the `URLRequest` that generated the error.
-    ///   - output: the optional output retrieved from the resource, it can be
-    ///     - `Data`, containing the response body, in case you used
-    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
-    ///     - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
-    func handle(error: Error, request: URLRequest, output: Any?)
+    ///   - output: the output, if any, retrieved from the resource, conveniently wrapped in an enum with the possible data types
+    func handle(error: any Error, request: URLRequest, output: AROutput?)
 }

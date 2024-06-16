@@ -14,35 +14,27 @@ import Foundation
 public enum ARError: Error {
     /// Error thrown if the response status code is not acceptable
     ///
-    /// The fields returned in the error are:
+    /// - Parameters:
     ///  - statusCode: The optional HTTP status code returned
     ///  - response: The optional response returned from the server
-    ///  - responseContent: The response content, the response type can be
-    ///    - `Data`, containing the response body, in case you used
-    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
-    ///    - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
-    case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: Any)
-
+    ///  - responseContent: The response content, conveniently wrapped in an enum with the possible data types
+    case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: AROutput)
+    
     /// Error thrown if the response mime type does not match the expected one
     ///
-    /// The fields returned in the error are:
+    /// - Parameters:
     ///  - mimeType: The response mime type
     ///  - response: The response returned from the server
-    ///  - responseContent: The response content, the response type can be
-    ///    - `Data`, containing the response body, in case you used
-    ///    ``ArachneProvider/data(_:timeoutInterval:session:)``
-    ///    - `URL`, the temporary downloaded file URL,
-    ///    in case you used ``ArachneProvider/download(_:timeoutInterval:session:)``
-    case unexpectedMimeType(mimeType: String?, response: HTTPURLResponse, responseContent: Any)
+    ///  - responseContent: The response content, conveniently wrapped in an enum with the possible data types
+    case unexpectedMimeType(mimeType: String?, response: HTTPURLResponse, responseContent: AROutput)
 
     /// Error thrown if a download task returns with no error but either one of URL or URLResponse is nil.
     ///
     /// It should never happen, it's been defined to ensure code correctness.
     ///
-    /// The fields returned in the error are:
+    /// - Parameters:
     ///  - url: The oprional downloaded file URL
-    ///  - urlResponse: The optional response returned from the server
+    ///  - urlResponse:  The optional response returned from the server
     case missingData(URL?, URLResponse?)
 }
 
@@ -71,6 +63,8 @@ extension ARError: LocalizedError {
         }
     }
 }
+
+// MARK: - Compatibility with NSError
 
 extension ARError: CustomNSError {
     public var errorUserInfo: [String: Any] {

@@ -2,7 +2,7 @@
 // MyModel.swift - test suite model
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Copyright (c) 2021 - 2024 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
