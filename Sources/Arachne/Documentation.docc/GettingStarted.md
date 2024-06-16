@@ -19,58 +19,53 @@ enum MyAPIService {
 
 extension MyAPIService: ArachneService {
     var baseUrl: String {
-        switch self {
-        default:
-            return "https://myapiservice.com"
-        }
+        "https://myapiservice.com"
     }
 
     var path: String {
         switch self {
         case .info:
-            return "/info"
+            "/info"
         case .userProfile(let username):
-            return "/users/\(username)"
+            "/users/\(username)"
         case .postEndpoint:
-            return "/postendpoint"
+            "/postendpoint"
         }
     }
 
     var queryStringItems: [URLQueryItem]? {
         switch self {
         case .postEndpoint(_, let limit):
-            return [
-                URLQueryItem(name: "limit", value: "\(limit)")
-            ]
+            [URLQueryItem(name: "limit", value: "\(limit)")]
         default:
-            return nil
+            nil
         }
     }
 
     var method: HttpMethod {
         switch self {
         case .postEndpoint:
-            return .post
+            .post
         default:
-            return .get
+            .get
         }
     }
 
     var body: Data? {
-        switch self{
+        switch self {
         case .postEndpoint(let myCodableObject, _):
-            return try? JSONEncoder().encode(myCodableObject)
+            try? JSONEncoder().encode(myCodableObject)
         default:
-            return nil
+            nil
         }
     }
 
-    var headers: [String: String]? {
+    var headers: [String : String]? {
         switch self {
         case .postEndpoint:
-            return nil
+            nil
         default:
-            return ["Accept": "application/json"]
+            ["Accept": "application/json"]
         }
     }
 }
@@ -110,11 +105,12 @@ class MyApiClient {
     }
 }
 
-class MyViewModel: ObservableObject {
+@Observable
+class MyState {
     private let apiClient = MyApiClient()
     private let logger = Logger(subsystem: "Arachne", category: "MyInteractor")
 
-    @Published var info: Info?
+    var info: Info?
 
     func getInfo() async {
         do {
@@ -126,14 +122,12 @@ class MyViewModel: ObservableObject {
 }
 
 struct MyView: View {
-    @ObservedObject var viewModel: MyViewModel
+    @State var state = MyState()
 
     var body: some View {
-        Text(viewModel.info?.name ?? "")
-            .onAppear {
-                Task {
-                    await viewModel.getInfo()
-                }
+        Text(state.info?.name ?? "No name")
+            .task {
+                await viewModel.getInfo()
             }
     }
 }

@@ -2,7 +2,7 @@
 // ArachneTests.swift - test suite
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2021 - 2023 artemisia-absynthium
+// Copyright (c) 2021 - 2024 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
@@ -12,76 +12,73 @@ import XCTest
 @testable import Arachne
 
 final class ArachneTests: XCTestCase {
-    let timeout: TimeInterval = 30
+    let timeout: TimeInterval = 10
+    lazy var configuration: URLSessionConfiguration = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [StubURLProtocol.self]
+        return configuration
+    }()
+    lazy var session: URLSession = URLSession(configuration: configuration)
+
+    override class func setUp() {
+        URLProtocol.registerClass(StubURLProtocol.self)
+        let service1Exchanges: [StubNetworkExchange] = MyService.allCases
+            .compactMap { guard let request = try? $0.urlRequest() else { return nil }
+                return StubNetworkExchange(urlRequest: request, response: $0.stubResponse) }
+        let service2Exchanges: [StubNetworkExchange] = MyServiceWithDefaults.allCases
+            .compactMap { guard let request = try? $0.urlRequest() else { return nil }
+                return StubNetworkExchange(urlRequest: request, response: $0.stubResponse) }
+        StubURLProtocol.stubExchanges = Set(service1Exchanges + service2Exchanges)
+    }
+
+    override class func tearDown() {
+        URLProtocol.unregisterClass(StubURLProtocol.self)
+    }
 
     func testGet() throws {
-        let expectation = XCTestExpectation(description: "Download my Github user info")
+        let expectation = XCTestExpectation(description: "Get request returns expected JSON data")
+        let expectedModel = MyModel(field: "field")
 
-        let provider = ArachneProvider<Github>()
+        let provider = ArachneProvider<MyService>(urlSession: session)
         Task {
             do {
-                let (data, _) = try await provider.data(.userProfile("artemisia-absynthium"))
-                let user = try JSONDecoder().decode(GithubUser.self, from: data)
-                XCTAssertEqual(user, GithubUser(login: "artemisia-absynthium"))
-                expectation.fulfill()
+                let (data, _) = try await provider.data(.jsonResponse)
+                let model = try JSONDecoder().decode(MyModel.self, from: data)
+                XCTAssertEqual(model, expectedModel)
             } catch {
                 XCTFail("Unexpected error: \(error.localizedDescription)")
             }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)
     }
 
-    func testMalformedUrlErrorBecauseOfBaseUrl() throws {
-        let expectation = XCTestExpectation(description: "Service URL is malformed")
-
-        let provider = ArachneProvider<Dummy>()
-        Task {
-            do {
-                _ = try await provider.data(.malformedUrl)
-                XCTFail("Shouldn't receive any value, URL is malformed")
-            } catch let error as URLError {
-                let expectedError = URLError(.unsupportedURL)
-                XCTAssertEqual(error.errorCode, expectedError.errorCode)
-                expectation.fulfill()
-            } catch {
-                XCTFail("Shouldn't receive any other error")
-            }
-        }
-
-        wait(for: [expectation], timeout: timeout)
-    }
-
-    func testMalformedUrlErrorBecauseOfPath() throws {
+    func testMalformedUrlError() throws {
         let expectation = XCTestExpectation(description: "Endpoint path is malformed")
+        let expectedError = URLError(.unsupportedURL)
 
-        let provider = ArachneProvider<Dummy>()
+        let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
             do {
                 _ = try await provider.data(.nilUrl)
                 XCTFail("Shouldn't receive any value, URL is malformed")
             } catch let error as URLError {
-                var urlComponents = URLComponents(string: "https://malformedquerystring.io")
-                let endpoint = Dummy.nilUrl
-                urlComponents?.path = endpoint.path
-                urlComponents?.queryItems = endpoint.queryStringItems
-                let expectedError = URLError(.unsupportedURL)
                 XCTAssertEqual(error.errorCode, expectedError.errorCode)
-                expectation.fulfill()
             } catch {
                 XCTFail("Shouldn't receive any other error")
             }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)
     }
 
     func testReservedAppleHeaderIsNotAdded() throws {
-        let endpoint = Dummy.reservedHeader
+        let endpoint = MyServiceWithDefaults.reservedHeader
 
-        let provider = ArachneProvider<Dummy>()
         do {
-            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: timeout)
+            let builtRequest = try endpoint.urlRequest()
             XCTAssertNil(builtRequest.value(forHTTPHeaderField: "Content-Length"))
         } catch {
             XCTFail("Building request for endpoint \(endpoint) should not fail")
@@ -89,76 +86,198 @@ final class ArachneTests: XCTestCase {
     }
 
     func testPost() throws {
-        let endpoint = Dummy.postSomething
-
-        let provider = ArachneProvider<Dummy>()
-        do {
-            let builtRequest = try provider.buildRequest(target: endpoint, timeoutInterval: timeout)
-            XCTAssertEqual(builtRequest.httpBody, "I'm posting something".data(using: .utf8))
-        } catch {
-            XCTFail("Building request for endpoint \(endpoint) should not fail")
-        }
-    }
-
-    func testDownload() throws {
-        let id = "7290872"
-
-        let expectation = XCTestExpectation(description: "Download an image")
-
-        let provider = ArachneProvider<Github>()
+        let expectation = XCTestExpectation(description: "POST request gets executed fine and body is as expected")
+ 
+        let builtRequest = try MyServiceWithDefaults.postSomething.urlRequest()
+        XCTAssertEqual(builtRequest.httpBody, "I'm posting something".data(using: .utf8))
+        
+        let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
             do {
-                let (url, response) = try await provider.download(.avatar(id))
+                _ = try await provider.data(.postSomething)
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: timeout)
+    }
+
+    func testDownloadTwice() throws {
+        let expectation = XCTestExpectation(description: "Download an image")
+
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                let (url, response) = try await provider.download(.fileDownload)
                 let fileExists = FileManager.default.fileExists(atPath: url.path)
                 XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
                 let httpResponse = response as? HTTPURLResponse
                 XCTAssertNotNil(httpResponse)
                 XCTAssertEqual(httpResponse?.statusCode, 200)
-                let (newUrl, _) = try await provider.download(.avatar(id))
+                let (newUrl, _) = try await provider.download(.fileDownload)
                 let newFileExists = FileManager.default.fileExists(atPath: newUrl.path)
                 XCTAssertTrue(newFileExists, "Redownloaded file doesn't exist")
-                expectation.fulfill()
             } catch {
                 XCTFail("Unexpected error: \(error.localizedDescription)")
             }
+            expectation.fulfill()
         }
 
-        wait(for: [expectation], timeout: 20)
+        wait(for: [expectation], timeout: timeout)
     }
 
-    func testRequestUnacceptableStatusCodeError() throws {
-        let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
+    func testDownloadStatusTwice() throws {
+        let writeDataExpectation = XCTestExpectation(description: "Data write is reported")
+        writeDataExpectation.expectedFulfillmentCount = 2
+        
+        let completeDownloadExpectation = XCTestExpectation(description: "Download is complete")
+        completeDownloadExpectation.expectedFulfillmentCount = 2
 
-        let provider = ArachneProvider<Github>()
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                    writeDataExpectation.fulfill()
+                } didCompleteTask: { result in
+                    switch result {
+                    case .success((let url, let response)):
+                        XCTAssertNotNil(url)
+                        XCTAssertNotNil(response)
+                        let fileExists = FileManager.default.fileExists(atPath: url.path)
+                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                        let httpResponse = response as? HTTPURLResponse
+                        XCTAssertNotNil(httpResponse)
+                        XCTAssertEqual(httpResponse?.statusCode, 200)
+                    case .failure(let error):
+                        XCTFail("Unexpected error: \(error.localizedDescription)")
+                    }
+                    completeDownloadExpectation.fulfill()
+                }
+                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                    writeDataExpectation.fulfill()
+                } didCompleteTask: { result in
+                    switch result {
+                    case .success((let url, let response)):
+                        XCTAssertNotNil(url)
+                        XCTAssertNotNil(response)
+                        let fileExists = FileManager.default.fileExists(atPath: url.path)
+                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                    case .failure(let error):
+                        XCTFail("Unexpected error: \(error.localizedDescription)")
+                    }
+                    completeDownloadExpectation.fulfill()
+                }
+            }
+        }
+
+        wait(for: [completeDownloadExpectation, writeDataExpectation], timeout: timeout)
+    }
+    
+    func testBytes() throws {
+        let expectation = XCTestExpectation(description: "I can download bytes")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                var count = 0
+                let (bytes, response) = try await provider.bytes(.fileDownload)
+                for try await _ in bytes {
+                    count += 1
+                }
+                let httpUrlResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpUrlResponse)
+                XCTAssertEqual(httpUrlResponse?.statusCode, 200)
+                XCTAssertEqual(count, 114521, "Unexpected number of bytes")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+    
+    func testUploadData() throws {
+        let expectation = XCTestExpectation(description: "I can upload data")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                let (data, response) = try await provider.upload(.plainText, from: sampleImageData)
+                XCTAssertEqual(data, "The response is 42".data(using: .utf8)!, "Data is different than expected")
+                let httpResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpResponse, "Response is not HTTPURLResponse")
+                XCTAssertEqual(httpResponse?.statusCode, 200, "Status code is different than expected")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+    
+    func testUploadFile() throws {
+        let expectation = XCTestExpectation(description: "I can upload data")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                let (data, response) = try await provider.upload(.plainText, fromFile: sampleImageUrl)
+                XCTAssertEqual(data, "The response is 42".data(using: .utf8)!, "Data is different than expected")
+                let httpResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpResponse, "Response is not HTTPURLResponse")
+                XCTAssertEqual(httpResponse?.statusCode, 200, "Status code is different than expected")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+
+    func testResponseHasUnacceptableStatusCode() throws {
+        let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
+        let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
+                                                           response: HTTPURLResponse(),
+                                                           responseContent: .data(Data()))
+
+        let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
             do {
                 _ = try await provider.data(.notFound)
                 XCTFail("Shouldn't receive any value, status code should be unacceptable")
             } catch let error as ARError {
                 switch error {
-                case .unacceptableStatusCode(let statusCode, let response, let data):
-                    let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
-                                                                       response: HTTPURLResponse(),
-                                                                       responseContent: Data())
+                case .unacceptableStatusCode(_, let response, let data):
                     XCTAssertEqual(error.errorCode, expectedError.errorCode)
-                    XCTAssertEqual(statusCode, 404)
                     XCTAssertNotNil(response)
                     XCTAssertNotNil(data)
                     XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
-                    expectation.fulfill()
+                case .unexpectedMimeType, .missingData:
+                    XCTFail("This is not the error you are looking for")
                 }
             } catch {
                 XCTFail("Shouldn't receive any other error")
             }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)
     }
 
-    func testDownloadUnacceptableStatusCodeError() throws {
+    func testDownloadHasUnacceptableStatusCode() throws {
         let expectation = XCTestExpectation(description: "Request returns an unacceptable status code")
+        let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
+                                                           response: HTTPURLResponse(),
+                                                           responseContent: .data(Data()))
 
-        let provider = ArachneProvider<Github>()
+        let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         Task {
             do {
                 _ = try await provider.download(.notFound)
@@ -166,19 +285,47 @@ final class ArachneTests: XCTestCase {
             } catch let error as ARError {
                 switch error {
                 case .unacceptableStatusCode(let statusCode, let response, let data):
-                    let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
-                                                                       response: HTTPURLResponse(),
-                                                                       responseContent: Data())
                     XCTAssertEqual(error.errorCode, expectedError.errorCode)
                     XCTAssertEqual(statusCode, 404)
                     XCTAssertNotNil(response)
                     XCTAssertNotNil(data)
                     XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
-                    expectation.fulfill()
+                case .unexpectedMimeType, .missingData:
+                    XCTFail("This is not the error you are looking for")
                 }
             } catch {
                 XCTFail("Shouldn't receive any other error")
             }
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: timeout)
+    }
+
+    func testResponseHasUnexpectedMimeType() throws {
+        let expectation = XCTestExpectation(description: "Response has unexpected mime type")
+        let expectedError = ARError.unexpectedMimeType(mimeType: "text/plain",
+                                                       response: HTTPURLResponse(),
+                                                       responseContent: .data(Data()))
+
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                _ = try await provider.download(.unexpectedMimeType)
+                XCTFail("Shouldn't receive any value, mime type should mismatch")
+            } catch let error as ARError {
+                switch error {
+                case .unexpectedMimeType(let mimeType, _, _):
+                    XCTAssertEqual(error.errorCode, expectedError.errorCode)
+                    XCTAssertEqual(mimeType, "text/plain")
+                    XCTAssertEqual(error.localizedDescription, expectedError.localizedDescription)
+                case .unacceptableStatusCode, .missingData:
+                    XCTFail("This is not the error you are looking for")
+                }
+            } catch {
+                XCTFail("Shouldn't receive any other error")
+            }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)
@@ -188,29 +335,24 @@ final class ArachneTests: XCTestCase {
         struct TestPlugin: ArachnePlugin {
             let errorExpectation: XCTestExpectation
             let requestExpectation: XCTestExpectation
-
-            func handle(error: Error, request: URLRequest, output: Any?) {
+            
+            func handle(error: any Error, request: URLRequest, output: AROutput?) {
                 XCTAssertEqual(request.url?.absoluteString,
-                               "https://api.github.com/notFound",
+                               try? MyServiceWithDefaults.notFound.url().absoluteString,
                                "Request URL in error is not equal to expected URL")
-                XCTAssertTrue(error is ARError)
-                switch error as? ARError {
-                case .some(.unacceptableStatusCode(let statusCode, _, _)):
-                    XCTAssertEqual(statusCode, 404)
-                case .none:
-                    XCTFail("Error is none but should be unacceptableStatusCode")
-                }
                 XCTAssertNotNil(output)
                 errorExpectation.fulfill()
             }
 
             func handle(request: URLRequest) {
-                XCTAssertEqual(request.url?.absoluteString, "\(Github.notFound.baseUrl)\(Github.notFound.path)")
+                XCTAssertEqual(request.url?.absoluteString, try MyServiceWithDefaults.notFound.url().absoluteString)
                 requestExpectation.fulfill()
             }
 
-            func handle(response: URLResponse, data: Any) {
+            func handle(response: URLResponse, output: AROutput) {
                 XCTFail("Should not have been called")
+                errorExpectation.fulfill()
+                requestExpectation.fulfill()
             }
         }
 
@@ -218,7 +360,7 @@ final class ArachneTests: XCTestCase {
         let requestExpectation = XCTestExpectation(description: "The plugin handles the correct request")
         let plugin = TestPlugin(errorExpectation: errorExpectation, requestExpectation: requestExpectation)
 
-        let provider = ArachneProvider<Github>().with(plugins: [plugin])
+        let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session).with(plugins: [plugin])
         Task {
             do {
                 _ = try await provider.data(.notFound)
@@ -232,23 +374,22 @@ final class ArachneTests: XCTestCase {
     }
 
     func testRequestModifier() throws {
-        let requestModifier: (Github, inout URLRequest) async throws -> Void = { _, request in
+        let requestModifier: (MyService, inout URLRequest) async throws -> Void = { _, request in
             let url = request.url?.absoluteString ?? ""
-            request.url = URL(string: "\(url)artemisia-absynthium")
+            request.url = URL(string: "\(url)modified")
         }
         let expectation = XCTestExpectation(
             description: "Request is modified by the signingPublisher and returns a valid user")
 
-        let provider = ArachneProvider<Github>().with(requestModifier: requestModifier)
+        let provider = ArachneProvider<MyService>(urlSession: session).with(requestModifier: requestModifier)
         Task {
             do {
-                let (data, _) = try await provider.data(.userProfile(""))
-                let user = try JSONDecoder().decode(GithubUser.self, from: data)
-                XCTAssertEqual(user, GithubUser(login: "artemisia-absynthium"))
-                expectation.fulfill()
+                let modifiedRequest = try await provider.urlRequest(for: .jsonResponse)
+                XCTAssertEqual(modifiedRequest.url, URL(string: "\(try MyService.jsonResponse.url())modified"), "URL was not modified")
             } catch {
                 XCTFail("Unexpected error: \(error.localizedDescription)")
             }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)
@@ -276,27 +417,26 @@ final class ArachneTests: XCTestCase {
         Task {
             do {
                 let delegate = TestURLSessionDelegate()
-                let customUrlSession = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-                var provider = ArachneProvider<Github>(urlSession: customUrlSession)
-                _ = try await provider.data(.zen)
+                let customUrlSession = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+                var provider = ArachneProvider<MyService>(urlSession: customUrlSession)
+                _ = try await provider.data(.plainText)
                 XCTAssertTrue(delegate.check)
 
                 delegate.reset()
 
                 provider = provider.with(plugins: [])
-                _ = try await provider.data(.zen)
+                _ = try await provider.data(.plainText)
                 XCTAssertTrue(delegate.check)
 
                 delegate.reset()
 
                 provider = provider.with(requestModifier: { _, _ in })
-                _ = try await provider.data(.zen)
+                _ = try await provider.data(.plainText)
                 XCTAssertTrue(delegate.check)
-
-                expectation.fulfill()
             } catch {
                 XCTFail("Unexpected error: \(error.localizedDescription)")
             }
+            expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: timeout)

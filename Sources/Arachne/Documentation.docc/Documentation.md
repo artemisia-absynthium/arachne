@@ -12,6 +12,7 @@ Arachne aims to backport async/await [`URLSession`](https://developer.apple.com/
 
 - <doc:GettingStarted>
 - ``ArachneService``
+- ``HttpMethod``
 
 ### Making requests
 

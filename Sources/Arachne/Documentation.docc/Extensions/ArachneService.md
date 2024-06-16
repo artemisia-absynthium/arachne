@@ -9,7 +9,3 @@ You typically implement this protocol in an `enum` to define an API having a spe
 ### Creating your service
 
 - <doc:GettingStarted>
-
-### Enums
-
-- ``HttpMethod``
