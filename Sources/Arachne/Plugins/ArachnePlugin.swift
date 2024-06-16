@@ -16,13 +16,13 @@ public protocol ArachnePlugin {
     /// - Parameter request: the final request before it's sent.
     func handle(request: URLRequest)
 
-    /// This function gets called immediately before returning a response.
+    /// This function gets called immediately before a response is returned.
     /// - Parameters:
     ///   - response: the `URLResponse`.
     ///   - output: the output retrieved from the resource, conveniently wrapped in an enum with the possible data types
     func handle(response: URLResponse, output: AROutput)
 
-    /// This function gets called whenever an error occurs, immediately before throwing it,
+    /// This function gets called whenever an error occurs, immediately before it is thrown.
     /// - Parameters:
     ///   - error: the error that will be thrown.
     ///   - request: the `URLRequest` that generated the error.

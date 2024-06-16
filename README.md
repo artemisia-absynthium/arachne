@@ -28,58 +28,53 @@ enum MyAPIService {
 
 extension MyAPIService: ArachneService {
     var baseUrl: String {
-        switch self {
-        default:
-            return "https://myapiservice.com"
-        }
+        "https://myapiservice.com"
     }
 
     var path: String {
         switch self {
         case .info:
-            return "/info"
+            "/info"
         case .userProfile(let username):
-            return "/users/\(username)"
+            "/users/\(username)"
         case .postEndpoint:
-            return "/postendpoint"
+            "/postendpoint"
         }
     }
 
     var queryStringItems: [URLQueryItem]? {
         switch self {
         case .postEndpoint(_, let limit):
-            return [
-                URLQueryItem(name: "limit", value: "\(limit)")
-            ]
+            [URLQueryItem(name: "limit", value: "\(limit)")]
         default:
-            return nil
+            nil
         }
     }
 
     var method: HttpMethod {
         switch self {
         case .postEndpoint:
-            return .post
+            .post
         default:
-            return .get
+            .get
         }
     }
 
     var body: Data? {
         switch self{
         case .postEndpoint(let myCodableObject, _):
-            return try? JSONEncoder().encode(myCodableObject)
+            try? JSONEncoder().encode(myCodableObject)
         default:
-            return nil
+            nil
         }
     }
 
-    var headers: [String: String]? {
+    var headers: [String : String]? {
         switch self {
         case .postEndpoint:
-            return nil
+            nil
         default:
-            return ["Accept": "application/json"]
+            ["Accept": "application/json"]
         }
     }
 }
@@ -119,11 +114,12 @@ class MyApiClient {
     }
 }
 
-class MyInteractor: ObservableObject {
+@Observable
+class MyState {
     private let apiClient = MyApiClient()
     private let logger = Logger(subsystem: "Arachne", category: "MyInteractor")
 
-    @Published var info: Info?
+    var info: Info?
 
     func getInfo() async {
         do {
@@ -135,14 +131,12 @@ class MyInteractor: ObservableObject {
 }
 
 struct MyView: View {
-    @ObservedObject var interactor: MyInteractor
+    @State var state = MyState()
 
     var body: some View {
-        Text(interactor.info?.name ?? "")
-            .onAppear {
-                Task {
-                    await interactor.getInfo()
-                }
+        Text(interactor.info?.name ?? "No name")
+            .task {
+                await interactor.getInfo()
             }
     }
 }
@@ -208,7 +202,7 @@ Go to your Project Settings > Swift Packages and add Arachne by entering `https:
 Add the following as a dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.5.0"))
+.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.0"))
 ```
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
 
@@ -219,10 +213,16 @@ Support for CocoaPods has been discontinued since version 0.5.0, in order to ins
 ## Roadmap
 
 Currently supported tasks are
-*   `dataTask`
-*   `downloadTask`
+* `bytes`
+* `data`
+* `download`
+* `upload`
+* Resumable download and download progress updates
 
-Next step will be to add the remaining tasks 🚧
+Next steps will be 🚧
+* Add support for resumable upload
+* Upload progress updates
+* Unit test specially for resumable download
 
 ## Contributing
 
@@ -236,7 +236,8 @@ This project is released under the [MIT License](https://github.com/artemisia-ab
 ## Project status
 
 This project recently experienced a shift of goal, while the initial goal of this library was to provide Combine publishers for tasks that didn't have one, the introduction of async/await in Swift suddenly made using Combine for network requests look cumbersome and this is why no new Combine tasks will be added.
-Instead the new goal of this library is to backport async/await `URLSession` tasks to macOS 10.15, iOS 13, iPadOS 13, tvOS 13 and watchOS 7, while the availability of their native counterpart in the Foundation framework is iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+.
+The current goal of this library is to backport async/await `URLSession` tasks to macOS 10.15, iOS 13, iPadOS 13, tvOS 13 and watchOS 7, while the availability of their native counterpart in the Foundation framework is iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+ and to provide an opinionated abstraction layer to remove boilerplate code.
+In the future, with the progressive drop of platform versions before iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+ from the community, the goal of this library will be only to provide an opinionated abstraction layer to remove boilerplate code.
 
 ## Why Arachne
 

@@ -12,7 +12,7 @@ import Foundation
 
 /// Errors that can be thrown by Arachne networking library
 public enum ARError: Error {
-    /// Error thrown if the response status code is not acceptable
+    /// Error thrown if the response status code is not acceptable based on the definition given in your ``ArachneService``.
     ///
     /// - Parameters:
     ///  - statusCode: The optional HTTP status code returned
@@ -20,7 +20,7 @@ public enum ARError: Error {
     ///  - responseContent: The response content, conveniently wrapped in an enum with the possible data types
     case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: AROutput)
     
-    /// Error thrown if the response mime type does not match the expected one
+    /// Error thrown if the response mime type does not match the expected one.
     ///
     /// - Parameters:
     ///  - mimeType: The response mime type
@@ -28,7 +28,7 @@ public enum ARError: Error {
     ///  - responseContent: The response content, conveniently wrapped in an enum with the possible data types
     case unexpectedMimeType(mimeType: String?, response: HTTPURLResponse, responseContent: AROutput)
 
-    /// Error thrown if a download task returns with no error but either one of URL or URLResponse is nil.
+    /// Error thrown if a download task returns with no error but either one of URL or URLResponse is `nil`.
     ///
     /// It should never happen, it's been defined to ensure code correctness.
     ///

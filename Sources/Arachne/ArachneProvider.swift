@@ -67,6 +67,11 @@ public struct ArachneProvider<T: ArachneService> {
     
     // MARK: Bytes
     
+    /// Retrieves the contents from an endpoint and delivers an asynchronous sequence of bytes.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
+    /// - Returns: An asynchronously-delivered tuple that contains a `URLSession.AsyncBytes` sequence to iterate over, and a `URLResponse`.
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
     public nonisolated func bytes(_ target: T, session: URLSession? = nil) async throws -> (URLSession.AsyncBytes, URLResponse) {
         let request = try await urlRequest(for: target)
@@ -224,8 +229,8 @@ public struct ArachneProvider<T: ArachneService> {
     /// Download a resource from an endpoint defined in an ``ArachneService`` and allows to follow download progress and task cancellation.
     ///
     /// You can't pass a `URLSession` to this method because one will be created with a delegate managed by Arachne.
-    /// Instead you can pass a session configuration that will be used by the created session.
-    ///
+    /// Instead you can pass a session configuration that will be used by the created session. 
+    /// If you need to use your delegate, just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s download functions directly.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - sessionConfiguration: Optional session configuration to init the session. If `nil`, the provider session configuration will be used.
@@ -264,15 +269,14 @@ public struct ArachneProvider<T: ArachneService> {
         return task
     }
 
-    /// Resumes a download started using ``download(_:sessionConfiguration:didWriteData:didCompleteTask:)``
-    /// from an endpoint defined in an ``ArachneService`` and allows to follow download progress and task cancellation.
+    /// Resumes a download from an endpoint defined in an ``ArachneService`` using resume data, and allows to follow download progress and task cancellation.
     ///
     /// The `Data` parameter has been obtained by calling `URLSessionDownloadTask.cancelByProducingResumeData()`.
     ///
     /// You can't pass a `URLSession` to this method because one will be created with a delegate managed by Arachne.
     /// Instead you can pass a session configuration that will be used by the created session.
+    /// If you need to use your delegate, just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s download functions directly. 
     /// A good practice is to use the same session configuration used when calling ``download(_:sessionConfiguration:didWriteData:didCompleteTask:)``.
-    ///
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - withResumeData: The partial download `Data`.
@@ -317,8 +321,6 @@ public struct ArachneProvider<T: ArachneService> {
     // MARK: Upload
     
     /// Uploads data to an endpoint and delivers the result asynchronously.
-    /// The session for this task uses a delegate of its own to provide status updates as a callback, if you need to use your delegate,
-    /// just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s upload functions directly.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
@@ -348,8 +350,6 @@ public struct ArachneProvider<T: ArachneService> {
     }
     
     /// Uploads data to an endpoint and delivers the result asynchronously.
-    /// The session for this task uses a delegate of its own to provide status updates as a callback, if you need to use your delegate,
-    /// just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s upload functions directly.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
@@ -382,7 +382,7 @@ public struct ArachneProvider<T: ArachneService> {
 
     /// Builds a `URLRequest` from an ``ArachneService`` endpoint definition.
     ///
-    /// The output request is not modified using the `requestModifier` you set using ``with(requestModifier:)``, you may want to use ``finalRequest(target:)``.
+    /// The output request is not modified using the `requestModifier` you set using ``with(requestModifier:)``, you may want to use ``urlRequest(for:)``.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - timeoutInterval: Optional timeout interval in seconds.
