@@ -65,6 +65,8 @@ public struct ArachneProvider<T: ArachneService> {
 
     // MARK: - Tasks
     
+    // MARK: Bytes
+    
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
     public nonisolated func bytes(_ target: T, session: URLSession? = nil) async throws -> (URLSession.AsyncBytes, URLResponse) {
         let request = try await urlRequest(for: target)
@@ -77,6 +79,8 @@ public struct ArachneProvider<T: ArachneService> {
             throw handleAndReturn(error: error, request: request)
         }
     }
+    
+    // MARK: Data
 
     /// Make a request to an endpoint defined in an ``ArachneService``.
     /// - Parameters:
@@ -134,6 +138,8 @@ public struct ArachneProvider<T: ArachneService> {
             }
         }
     }
+    
+    // MARK: Download
 
     /// Download a resource from an endpoint defined in an ``ArachneService``.
     ///
@@ -307,6 +313,70 @@ public struct ArachneProvider<T: ArachneService> {
         task.resume()
         return task
     }
+    
+    // MARK: Upload
+    
+    /// Uploads data to an endpoint and delivers the result asynchronously.
+    /// The session for this task uses a delegate of its own to provide status updates as a callback, if you need to use your delegate,
+    /// just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s upload functions directly.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
+    ///   - bodyData: The body data for the request.
+    /// - Returns: An asynchronously-delivered tuple that contains any data returned by the server as a `Data` instance, and a `URLResponse`.
+    public nonisolated func upload(_ target: T, session: URLSession? = nil, from bodyData: Data) async throws -> (Data, URLResponse) {
+        let request = try await urlRequest(for: target)
+        plugins?.forEach { $0.handle(request: request) }
+        let currentSession = session ?? urlSession
+        do {
+            let (responseData, response) = if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
+                try await currentSession.upload(for: request, from: bodyData)
+            } else {
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
+                    currentSession.uploadTask(with: request, from: bodyData) { data, response, error in
+                        guard let data, let response, error == nil else {
+                            return continuation.resume(throwing: ARError.missingData(nil, response))
+                        }
+                        continuation.resume(returning: (data, response))
+                    }.resume()
+                }
+            }
+            return try handleResponse(target: target, data: responseData, output: .data(responseData), response: response)
+        } catch {
+            throw handleAndReturn(error: error, request: request)
+        }
+    }
+    
+    /// Uploads data to an endpoint and delivers the result asynchronously.
+    /// The session for this task uses a delegate of its own to provide status updates as a callback, if you need to use your delegate,
+    /// just build the URLRequest for your endpoint using ``urlRequest(for:)`` and use `URLSession`'s upload functions directly.
+    /// - Parameters:
+    ///   - target: An endpoint.
+    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
+    ///   - fileURL: A file URL containing the data to upload.
+    /// - Returns: An asynchronously-delivered tuple that contains any data returned by the server as a `Data` instance, and a `URLResponse`.
+    public nonisolated func upload(_ target: T, session: URLSession? = nil, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
+        let request = try await urlRequest(for: target)
+        plugins?.forEach { $0.handle(request: request) }
+        let currentSession = session ?? urlSession
+        do {
+            let (responseData, response) = if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
+                try await currentSession.upload(for: request, fromFile: fileURL)
+            } else {
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
+                    currentSession.uploadTask(with: request, fromFile: fileURL) { data, response, error in
+                        guard let data, let response, error == nil else {
+                            return continuation.resume(throwing: ARError.missingData(nil, response))
+                        }
+                        continuation.resume(returning: (data, response))
+                    }.resume()
+                }
+            }
+            return try handleResponse(target: target, data: responseData, output: .data(responseData), response: response)
+        } catch {
+            throw handleAndReturn(error: error, request: request)
+        }
+    }
 
     // MARK: - URLRequest
 
@@ -365,13 +435,13 @@ public struct ArachneProvider<T: ArachneService> {
         if let expectedMimeType = target.expectedMimeType, httpResponse.mimeType != expectedMimeType {
             throw ARError.unexpectedMimeType(mimeType: httpResponse.mimeType, response: httpResponse, responseContent: output)
         }
-        self.plugins?.forEach { $0.handle(response: response, output: output) }
+        plugins?.forEach { $0.handle(response: response, output: output) }
         return (data, response)
     }
 
     private nonisolated func handleAndReturn(error: Error, request: URLRequest) -> Error {
         let output = extractOutput(from: error)
-        self.plugins?.forEach { $0.handle(error: error, request: request, output: output) }
+        plugins?.forEach { $0.handle(error: error, request: request, output: output) }
         return error
     }
 

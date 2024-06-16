@@ -12,7 +12,7 @@ import XCTest
 @testable import Arachne
 
 final class ArachneTests: XCTestCase {
-    let timeout: TimeInterval = 30
+    let timeout: TimeInterval = 10
     lazy var configuration: URLSessionConfiguration = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StubURLProtocol.self]
@@ -197,6 +197,48 @@ final class ArachneTests: XCTestCase {
             }
             expectation.fulfill()
         }
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+    
+    func testUploadData() throws {
+        let expectation = XCTestExpectation(description: "I can upload data")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                let (data, response) = try await provider.upload(.plainText, from: sampleImageData)
+                XCTAssertEqual(data, "The response is 42".data(using: .utf8)!, "Data is different than expected")
+                let httpResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpResponse, "Response is not HTTPURLResponse")
+                XCTAssertEqual(httpResponse?.statusCode, 200, "Status code is different than expected")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+    
+    func testUploadFile() throws {
+        let expectation = XCTestExpectation(description: "I can upload data")
+        
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        Task {
+            do {
+                let (data, response) = try await provider.upload(.plainText, fromFile: sampleImageUrl)
+                XCTAssertEqual(data, "The response is 42".data(using: .utf8)!, "Data is different than expected")
+                let httpResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpResponse, "Response is not HTTPURLResponse")
+                XCTAssertEqual(httpResponse?.statusCode, 200, "Status code is different than expected")
+            } catch {
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: timeout)
     }
 
     func testResponseHasUnacceptableStatusCode() throws {

@@ -84,17 +84,7 @@ extension MyService: ArachneService {
         case .jsonResponse:
             return StubResponse(statusCode: 200, data: #"{"field" : "field"}"#.data(using: .utf8)!, headers: ["Content-Type": "application/json"])
         case .fileDownload:
-            let imageUrl: URL = Bundle.module.url(forResource: "image", withExtension: "png")!
-            let path: String
-            if #available(macOS 13.0, *) {
-                path = imageUrl.path()
-            } else {
-                path = imageUrl.path
-            }
-            let content = FileManager.default.contents(atPath: path)!
-            return StubResponse(statusCode: 200, data: content, headers: [
-                "Content-Type": "image/png"
-            ])
+            return StubResponse(statusCode: 200, data: sampleImageData, headers: ["Content-Type": "image/png"])
         }
     }
 }
