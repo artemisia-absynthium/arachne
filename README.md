@@ -202,7 +202,7 @@ Go to your Project Settings > Swift Packages and add Arachne by entering `https:
 Add the following as a dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.0"))
+.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.1"))
 ```
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
 
