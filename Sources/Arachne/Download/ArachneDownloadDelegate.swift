@@ -11,7 +11,7 @@
 
 import Foundation
 
-class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionTaskDelegate {
+final class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionTaskDelegate {
     private let didResumeDownload: (Int64, Int64) -> Void
     private let didWriteData: (Int64, Int64, Int64) -> Void
     private let didCompleteTask: (URL?, URLResponse?, Error?) -> Void
