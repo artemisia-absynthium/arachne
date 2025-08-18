@@ -18,6 +18,7 @@ jobs:
     - name: Run tests
       run: swift test -v --enable-code-coverage
     - name: Export coverage report as Lcov
+      if: github.ref == 'refs/heads/main'
       run: xcrun llvm-cov export -format="lcov" -instr-profile=.build/arm64-apple-macosx/debug/codecov/default.profdata .build/arm64-apple-macosx/debug/ArachnePackageTests.xctest/Contents/MacOS/ArachnePackageTests > lcov.info
     - uses: codecov/codecov-action@v5
       if: github.ref == 'refs/heads/main'
