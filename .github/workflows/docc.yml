@@ -10,9 +10,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Build documentation archive
-      run: xcodebuild docbuild -scheme Arachne -derivedDataPath ./docbuild -destination 'platform=iOS Simulator,OS=latest,name=iPhone 13'
+      run: xcodebuild docbuild -scheme Arachne -derivedDataPath ./docbuild -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16'
     - name: Find and push the generated archive
       run: |
         DOCCARCHIVE=`find ./docbuild -type d -iname "Arachne.doccarchive"`
