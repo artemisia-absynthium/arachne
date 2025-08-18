@@ -43,7 +43,7 @@ public extension ARError {
     internal var underlyingError: Error? {
         switch self {
         case .unacceptableStatusCode, .unexpectedMimeType, .missingData:
-            return nil
+            nil
         }
     }
 }
@@ -55,11 +55,11 @@ extension ARError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .unacceptableStatusCode(let code, _, _):
-            return "Unacceptable status code: \(String(describing: code))"
+            "Unacceptable status code: \(String(describing: code))"
         case .unexpectedMimeType(let mimeType, _, _):
-            return "Unexpected mime type: \(String(describing: mimeType))"
+            "Unexpected mime type: \(String(describing: mimeType))"
         case .missingData(let url, let response):
-            return "Either one of URL or URLResponse are missing: URL=\(String(describing: url)), URLResponse=\(String(describing: response))"
+            "Either one of URL or URLResponse are missing: URL=\(String(describing: url)), URLResponse=\(String(describing: response))"
         }
     }
 }
@@ -77,11 +77,20 @@ extension ARError: CustomNSError {
     public var errorCode: Int {
         switch self {
         case .unacceptableStatusCode:
-            return 901
+            901
         case .unexpectedMimeType:
-            return 902
+            902
         case .missingData:
-            return 903
+            903
         }
+    }
+}
+
+// MARK: - Download resume data
+
+public extension Error {
+    /// Returns data useful to resume a failed download, if any
+    var downloadResumeData: Data? {
+        (self as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data
     }
 }

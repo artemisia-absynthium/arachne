@@ -204,6 +204,7 @@ Add the following as a dependency to your `Package.swift`:
 ```swift
 .package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.1"))
 ```
+
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
 
 ### Cocoapods
@@ -213,6 +214,7 @@ Support for CocoaPods has been discontinued since version 0.5.0, in order to ins
 ## Roadmap
 
 Currently supported tasks are
+
 * `bytes`
 * `data`
 * `download`
@@ -220,6 +222,7 @@ Currently supported tasks are
 * Resumable download and download progress updates
 
 Next steps will be 🚧
+
 * Add support for resumable upload
 * Upload progress updates
 * Unit test specially for resumable download

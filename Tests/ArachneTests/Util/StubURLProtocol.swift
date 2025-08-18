@@ -9,14 +9,11 @@
 //
 
 import Foundation
-import os
 
 /// Inspired by https://www.theinkedengineer.com/articles/mocking-requests-using-url-protocol
 class StubURLProtocol: URLProtocol {
-    static var stubExchanges: Set<StubNetworkExchange> = []
+    nonisolated(unsafe) static var stubExchanges: Set<StubNetworkExchange> = []
     private var isCancelled = false
-    
-    private let logger = Logger(subsystem: "ArachneTests", category: "StubURLProtocol")
 
     override class func canInit(with task: URLSessionTask) -> Bool {
         true
