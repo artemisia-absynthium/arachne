@@ -10,7 +10,7 @@
 
 import Foundation
 
-nonisolated func composedUrl<T: ArachneService>(for target: T) throws -> URL {
+nonisolated func composedUrl<T: ArachneService>(for target: T) throws(URLError) -> URL {
     guard var urlComponents = URLComponents(string: target.baseUrl) else {
         throw URLError(.unsupportedURL, userInfo: [
             NSLocalizedDescriptionKey : "Unsupported URL",

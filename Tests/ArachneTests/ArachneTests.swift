@@ -137,41 +137,34 @@ final class ArachneTests: XCTestCase {
 
         let provider = ArachneProvider<MyService>(urlSession: session)
         Task {
-            do {
-                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
-                    writeDataExpectation.fulfill()
-                } didCompleteTask: { result in
-                    switch result {
-                    case .success((let url, let response)):
-                        XCTAssertNotNil(url)
-                        XCTAssertNotNil(response)
-                        let fileExists = FileManager.default.fileExists(atPath: url.path)
-                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
-                        let httpResponse = response as? HTTPURLResponse
-                        XCTAssertNotNil(httpResponse)
-                        XCTAssertEqual(httpResponse?.statusCode, 200)
-                    case .failure(let error):
-                        XCTFail("Unexpected error: \(error.localizedDescription)")
-                    }
-                    completeDownloadExpectation.fulfill()
-                }
-                _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-                    XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
-                    writeDataExpectation.fulfill()
-                } didCompleteTask: { result in
-                    switch result {
-                    case .success((let url, let response)):
-                        XCTAssertNotNil(url)
-                        XCTAssertNotNil(response)
-                        let fileExists = FileManager.default.fileExists(atPath: url.path)
-                        XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
-                    case .failure(let error):
-                        XCTFail("Unexpected error: \(error.localizedDescription)")
-                    }
-                    completeDownloadExpectation.fulfill()
-                }
+            _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                writeDataExpectation.fulfill()
+            } didCompleteTask: { url, response in
+                XCTAssertNotNil(url)
+                XCTAssertNotNil(response)
+                let fileExists = FileManager.default.fileExists(atPath: url.path)
+                XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+                let httpResponse = response as? HTTPURLResponse
+                XCTAssertNotNil(httpResponse)
+                XCTAssertEqual(httpResponse?.statusCode, 200)
+            } didFailTask: { error in
+                XCTFail("Unexpected error: \(error.localizedDescription)")
             }
+            completeDownloadExpectation.fulfill()
+
+            _ = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+                XCTAssertLessThanOrEqual(bytesWritten, totalBytesWritten, "Bytes written are more than total bytes written")
+                writeDataExpectation.fulfill()
+            } didCompleteTask: { url, response in
+                XCTAssertNotNil(url)
+                XCTAssertNotNil(response)
+                let fileExists = FileManager.default.fileExists(atPath: url.path)
+                XCTAssertTrue(fileExists, "Downloaded file doesn't exist")
+            } didFailTask: { error in
+                XCTFail("Unexpected error: \(error.localizedDescription)")
+            }
+            completeDownloadExpectation.fulfill()
         }
 
         wait(for: [completeDownloadExpectation, writeDataExpectation], timeout: timeout)
@@ -375,7 +368,7 @@ final class ArachneTests: XCTestCase {
     }
 
     func testRequestModifier() throws {
-        let requestModifier: (MyService, inout URLRequest) async throws -> Void = { _, request in
+        let requestModifier: @Sendable (MyService, inout URLRequest) async throws -> Void = { _, request in
             let url = request.url?.absoluteString ?? ""
             request.url = URL(string: "\(url)modified")
         }
