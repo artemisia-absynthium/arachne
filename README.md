@@ -1,18 +1,16 @@
 # Arachne
 
 [![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fartemisia-absynthium%2Farachne%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/artemisia-absynthium/arachne)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fartemisia-absynthium%2Farachne%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/artemisia-absynthium/arachne)  
+[![Compatible Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fartemisia-absynthium%2Farachne%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/artemisia-absynthium/arachne)  
 [![Swift CI](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml?branch=main)
 [![CodeQL](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql)
 [![codecov](https://codecov.io/github/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/github/artemisia-absynthium/arachne)
 
 Arachne is a lightweight, minimalistic, zero dependencies networking layer for apps using [Swift Concurrency (async/await)](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) or [Combine](https://developer.apple.com/documentation/combine) (support to Combine will be discontinued) developed in Swift, that provides an opinionated abstraction layer to remove boilerplate code.
 
-Arachne aims to backport async/await `URLSession` tasks to macOS 10.15, iOS 13, iPadOS 13, tvOS 13 and watchOS 7, while the availability of their native counterpart in the Foundation framework is iOS 15.0+, iPadOS 15.0+, macOS 12.0+, Mac Catalyst 15.0+, tvOS 15.0+, watchOS 8.0+.
-
 This library's design was inspired by [Moya](https://github.com/Moya/Moya), but differently from Moya, Arachne uses only the standard [Foundation framework](https://developer.apple.com/documentation/foundation/url_loading_system) (e.g. `URLSession`).
 
-This makes Arachne suitable for recently created or migrated apps that make use of Apple's frameworks, instead of third party ones, like [Alamofire](https://github.com/Alamofire/Alamofire) or [RxSwift](https://github.com/ReactiveX/RxSwift).
+This makes Arachne suitable for recently created or migrated apps that make use of Apple's frameworks, instead of third party ones, like [Alamofire](https://github.com/Alamofire/Alamofire).
 
 ## Usage
 
@@ -204,7 +202,7 @@ Go to your Project Settings > Swift Packages and add Arachne by entering `https:
 Add the following as a dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.1"))
+.package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.8.0"))
 ```
 
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
