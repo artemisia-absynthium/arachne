@@ -13,8 +13,8 @@ import Foundation
 nonisolated func composedUrl<T: ArachneService>(for target: T) throws(URLError) -> URL {
     guard var urlComponents = URLComponents(string: target.baseUrl) else {
         throw URLError(.unsupportedURL, userInfo: [
-            NSLocalizedDescriptionKey : "Unsupported URL",
-            NSURLErrorFailingURLStringErrorKey : target.baseUrl
+            NSLocalizedDescriptionKey: "Unsupported URL",
+            NSURLErrorFailingURLStringErrorKey: target.baseUrl
         ])
     }
     urlComponents.path.append(target.path)
@@ -24,8 +24,8 @@ nonisolated func composedUrl<T: ArachneService>(for target: T) throws(URLError) 
     }
     guard let url = urlComponents.url else {
         throw URLError(.unsupportedURL, userInfo: [
-            NSLocalizedDescriptionKey : "Unsupported URL",
-            NSURLErrorFailingURLStringErrorKey : urlComponents.description
+            NSLocalizedDescriptionKey: "Unsupported URL",
+            NSURLErrorFailingURLStringErrorKey: urlComponents.description
         ])
     }
     return url

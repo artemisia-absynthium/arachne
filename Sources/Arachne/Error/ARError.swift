@@ -12,14 +12,15 @@ import Foundation
 
 /// Errors that can be thrown by Arachne networking library
 public enum ARError: Error {
-    /// Error thrown if the response status code is not acceptable based on the definition given in your ``ArachneService``.
+    /// Error thrown if the response status code is not acceptable
+    /// based on the definition given in your ``ArachneService``.
     ///
     /// - Parameters:
     ///  - statusCode: The optional HTTP status code returned
     ///  - response: The optional response returned from the server
     ///  - responseContent: The response content, conveniently wrapped in an enum with the possible data types
     case unacceptableStatusCode(statusCode: Int?, response: HTTPURLResponse?, responseContent: AROutput)
-    
+
     /// Error thrown if the response mime type does not match the expected one.
     ///
     /// - Parameters:
@@ -59,7 +60,11 @@ extension ARError: LocalizedError {
         case .unexpectedMimeType(let mimeType, _, _):
             "Unexpected mime type: \(String(describing: mimeType))"
         case .missingData(let url, let response):
-            "Either one of URL or URLResponse are missing: URL=\(String(describing: url)), URLResponse=\(String(describing: response))"
+            """
+            URL and/or URLResponse are missing:
+            URL=\(String(describing: url))
+            URLResponse=\(String(describing: response))
+            """
         }
     }
 }
