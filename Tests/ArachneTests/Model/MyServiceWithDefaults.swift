@@ -59,13 +59,13 @@ extension MyServiceWithDefaults: ArachneService {
     var body: Data? {
         switch self {
         case .postSomething:
-            "I'm posting something".data(using: .utf8)
+            Data("I'm posting something".utf8)
         default:
             nil
         }
     }
 
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         switch self {
         case .reservedHeader:
             ["Content-Length": "1234"]

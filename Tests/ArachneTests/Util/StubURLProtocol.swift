@@ -48,18 +48,18 @@ class StubURLProtocol: URLProtocol {
     override func stopLoading() {
         isCancelled = true
     }
-    
+
     private func sendDataInChunks(data: Data) {
         let chunkSize = 1024 * 30 // 30KB chunks
         var offset = 0
-        
+
         while offset < data.count && !isCancelled {
             let chunk = data.subdata(in: offset..<min(offset + chunkSize, data.count))
             client?.urlProtocol(self, didLoad: chunk)
             offset += chunkSize
             Thread.sleep(forTimeInterval: 0.1) // Simulate network delay
         }
-        
+
         if !isCancelled {
             client?.urlProtocolDidFinishLoading(self)
         }

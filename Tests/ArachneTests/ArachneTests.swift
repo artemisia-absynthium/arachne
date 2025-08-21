@@ -73,8 +73,8 @@ class ArachneTests {
     @Test("POST request gets executed fine and body is as expected")
     func testPost() async throws {
         let builtRequest = try MyServiceWithDefaults.postSomething.urlRequest()
-        try #require(builtRequest.httpBody == "I'm posting something".data(using: .utf8))
-        
+        try #require(builtRequest.httpBody == Data("I'm posting something".utf8))
+
         let provider = ArachneProvider<MyServiceWithDefaults>(urlSession: session)
         _ = try await provider.data(.postSomething)
     }
@@ -115,7 +115,7 @@ class ArachneTests {
             let task2 = try await provider.download(.fileDownload) { bytesWritten, totalBytesWritten, _ in
                 #expect(bytesWritten <= totalBytesWritten, "Bytes written are more than total bytes written")
                 statusReported()
-            } didCompleteTask: { url, response in
+            } didCompleteTask: { url, _ in
                 let fileExists = FileManager.default.fileExists(atPath: url.path)
                 #expect(fileExists, "Downloaded file doesn't exist")
                 statusReported()
@@ -143,27 +143,29 @@ class ArachneTests {
         try #require(httpUrlResponse?.statusCode == 200)
         try #require(count == 114521, "Unexpected number of bytes")
     }
-    
+
     @Test("I can upload data")
     func testUploadData() async throws {
         let provider = ArachneProvider<MyService>(urlSession: session)
         let (data, response) = try await provider.upload(.plainText, from: sampleImageData)
-        try #require(data == "The response is 42".data(using: .utf8)!, "Data is different than expected")
-        let httpResponse = response as? HTTPURLResponse
-        try #require(httpResponse != nil, "Response is not HTTPURLResponse")
-        try #require(httpResponse?.statusCode == 200, "Status code is different than expected")
-    }
-    
-    @Test("I can upload file")
-    func testUploadFile() async throws {
-        let provider = ArachneProvider<MyService>(urlSession: session)
-        let (data, response) = try await provider.upload(.plainText, fromFile: sampleImageUrl)
-        try #require(data == "The response is 42".data(using: .utf8)!, "Data is different than expected")
+        try #require(data == Data("The response is 42".utf8), "Data is different than expected")
         let httpResponse = response as? HTTPURLResponse
         try #require(httpResponse != nil, "Response is not HTTPURLResponse")
         try #require(httpResponse?.statusCode == 200, "Status code is different than expected")
     }
 
+    @Test("I can upload file")
+    func testUploadFile() async throws {
+        let provider = ArachneProvider<MyService>(urlSession: session)
+        let (data, response) = try await provider.upload(.plainText, fromFile: sampleImageUrl)
+        try #require(data == Data("The response is 42".utf8), "Data is different than expected")
+        let httpResponse = response as? HTTPURLResponse
+        try #require(httpResponse != nil, "Response is not HTTPURLResponse")
+        try #require(httpResponse?.statusCode == 200, "Status code is different than expected")
+    }
+}
+
+extension ArachneTests {
     @Test("Request returns an unacceptable status code")
     func testResponseHasUnacceptableStatusCode() async throws {
         let expectedError = ARError.unacceptableStatusCode(statusCode: 404,
@@ -287,7 +289,8 @@ class ArachneTests {
 
         let provider = ArachneProvider<MyService>(urlSession: session).with(requestModifier: requestModifier)
         let modifiedRequest = try await provider.urlRequest(for: .jsonResponse)
-        try #require(modifiedRequest.url == URL(string: "\(try MyService.jsonResponse.url())modified"), "URL was not modified")
+        try #require(modifiedRequest.url == URL(string: "\(try MyService.jsonResponse.url())modified"),
+                     "URL was not modified")
     }
 
     @Test("Provider initializes with custom URLSession")
@@ -299,7 +302,9 @@ class ArachneTests {
                 self.confirmation = confirmation
             }
 
-            func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+            func urlSession(_ session: URLSession,
+                            task: URLSessionTask,
+                            didFinishCollecting metrics: URLSessionTaskMetrics) {
                 confirmation.confirm()
             }
         }
@@ -309,10 +314,10 @@ class ArachneTests {
             let customUrlSession = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
             var provider = ArachneProvider<MyService>(urlSession: customUrlSession)
             _ = try await provider.data(.plainText)
-            
+
             provider = provider.with(plugins: [])
             _ = try await provider.data(.plainText)
-            
+
             provider = provider.with(requestModifier: { _, _ in })
             _ = try await provider.data(.plainText)
         }

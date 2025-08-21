@@ -27,8 +27,7 @@ let package = Package(
         .testTarget(
             name: "ArachneTests",
             dependencies: ["Arachne"],
-            resources: [
-                .process("Resources/image.png")
-            ])
+            resources: [.process("Resources/image.png")],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")])
     ]
 )
