@@ -1,8 +1,11 @@
 //
-//  ArachneProvider+Download.swift
-//  Arachne
+// ArachneProvider+Download.swift - the provider download methods implementation
+// This source file is part of the Arachne open source project
 //
-//  Created by Cristina De Rito on 21/08/25.
+// Copyright (c) 2021 - 2025 artemisia-absynthium
+// Licensed under MIT
+//
+// See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
 //
 
 import Foundation
@@ -10,48 +13,10 @@ import Foundation
 extension ArachneProvider {
     /// Download a resource from an endpoint defined in an ``ArachneService``.
     ///
-    /// **Since iOS 15, macOS 12, tvOS 15, watchOS 8** the downloaded file must be copied
+    /// The downloaded file must be copied
     /// in the appropriate folder to be used, because Arachne makes no assumption
     /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.download`.
     ///
-    /// **On lower OS versions** the temporary file is copied
-    /// in the user cache folder so you are responsible for removing the file
-    /// when your app no longer needs it.
-    /// - Parameters:
-    ///   - target: An endpoint.
-    ///   - timeoutInterval: Optional timeout interval in seconds.
-    ///   Default value is the default of `URLRequest`: 60 seconds.
-    ///   - session: Optionally pass any session you want to use instead of the one of the provider.
-    /// - Returns: The URL of the saved file, along with the response.
-    /// - Throws: `URLError` if any of the request components are invalid
-    /// or the error thrown from the `requestModifier` you set using ``with(requestModifier:)``.
-    ///   ``ARError/unacceptableStatusCode(statusCode:response:responseContent:)``
-    ///   if the response code doesn't fall in your ``ArachneService/validCodes-85b1u``.
-    ///   ``ARError/unexpectedMimeType(mimeType:response:responseContent:)``
-    ///   if the response mime type doesn't match ``ArachneService/expectedMimeType-4w7gr``.
-    ///   If the download can be resumed, there will be data in the error's ``Error.downloadResumeData``.
-    @available(
-        *,
-         deprecated,
-         renamed: "download(target:session:)",
-         // swiftlint:disable line_length
-         message: "Use download(target:session:) instead, timeoutInterval is now defined in ArachneService and the value passed as input to this method is ignored")
-    // swiftlint:enable line_length
-    public nonisolated func download(_ target: T,
-                                     timeoutInterval: Double? = nil,
-                                     session: URLSession? = nil) async throws -> (URL, URLResponse) {
-        return try await download(target, session: session)
-    }
-
-    /// Download a resource from an endpoint defined in an ``ArachneService``.
-    ///
-    /// **Since iOS 15, macOS 12, tvOS 15, watchOS 8** the downloaded file must be copied
-    /// in the appropriate folder to be used, because Arachne makes no assumption
-    /// on whether it must be cached or not so it just returns the same URL returned from `URLSession.download`.
-    ///
-    /// **On lower OS versions** the temporary file is copied
-    /// in the user cache folder so you are responsible for removing the file
-    /// when your app no longer needs it.
     /// - Parameters:
     ///   - target: An endpoint.
     ///   - session: Optionally pass any session you want to use instead of the one of the provider.
@@ -67,38 +32,11 @@ extension ArachneProvider {
         let request = try await urlRequest(for: target)
         self.plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? self.urlSession
-        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-            do {
-                let (url, response) = try await currentSession.download(for: request)
-                return try handleResponse(target: target, data: url, output: .url(url), response: response)
-            } catch {
-                throw handleAndReturn(error: error, request: request)
-            }
-        } else {
-            do {
-                let (url, response) = try await withCheckedThrowingContinuation { continuation in
-                    currentSession.downloadTask(with: request) { url, response, error in
-                        do {
-                            guard let url = url, let response = response, error == nil else {
-                                throw error ?? ARError.missingData(url, response)
-                            }
-                            let tempDestination = try FileManager.default
-                                .url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                                .appendingPathComponent(url.lastPathComponent)
-                            if FileManager.default.fileExists(atPath: tempDestination.path) {
-                                try FileManager.default.removeItem(at: tempDestination)
-                            }
-                            try FileManager.default.copyItem(at: url, to: tempDestination)
-                            continuation.resume(returning: (tempDestination, response))
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }.resume()
-                }
-                return try handleResponse(target: target, data: url, output: .url(url), response: response)
-            } catch {
-                throw handleAndReturn(error: error, request: request)
-            }
+        do {
+            let (url, response) = try await currentSession.download(for: request)
+            return try handleResponse(target: target, data: url, output: .url(url), response: response)
+        } catch {
+            throw handleAndReturn(error: error, request: request)
         }
     }
 

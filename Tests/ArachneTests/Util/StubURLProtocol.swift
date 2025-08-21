@@ -2,7 +2,7 @@
 // StubURLProtocol.swift - Stub URL protocol that responds to requests locally
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2023 - 2024 artemisia-absynthium
+// Copyright (c) 2023 - 2025 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
