@@ -14,11 +14,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '26.0-beta'
-    - name: Run SwiftLint
-      run: |
-        brew install swiftlint
-        swiftlint lint --strict --working-directory Sources
-        swiftlint lint --strict --working-directory Tests
+    - name: Install SwiftLint
+      run: brew install swiftlint
+    - name: Lint Sources
+      run: swiftlint lint --strict --working-directory Sources
+    - name: Lint Tests
+      run: swiftlint lint --strict --working-directory Tests
