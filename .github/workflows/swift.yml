@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   test-and-coverage:
+    name: Test and Coverage
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v5
