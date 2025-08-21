@@ -19,5 +19,6 @@ jobs:
         xcode-version: '26.0-beta'
     - name: Run SwiftLint
       run: |
+        brew install swiftlint
         swiftlint lint --strict --working-directory Sources
         swiftlint lint --strict --working-directory Tests
