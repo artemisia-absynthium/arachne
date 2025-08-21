@@ -80,11 +80,23 @@ extension MyService: ArachneService {
     var stubResponse: StubResponse {
         switch self {
         case .plainText, .unexpectedMimeType:
-            return StubResponse(statusCode: 200, data: "The response is 42".data(using: .utf8)!, headers: ["Content-Type": "text/plain"])
+            return StubResponse(
+                statusCode: 200,
+                data: Data("The response is 42".utf8),
+                headers: ["Content-Type": "text/plain"]
+            )
         case .jsonResponse:
-            return StubResponse(statusCode: 200, data: #"{"field" : "field"}"#.data(using: .utf8)!, headers: ["Content-Type": "application/json"])
+            return StubResponse(
+                statusCode: 200,
+                data: Data(#"{"field" : "field"}"#.utf8),
+                headers: ["Content-Type": "application/json"]
+            )
         case .fileDownload:
-            return StubResponse(statusCode: 200, data: sampleImageData, headers: ["Content-Type": "image/png"])
+            return StubResponse(
+                statusCode: 200,
+                data: sampleImageData,
+                headers: ["Content-Type": "image/png"]
+            )
         }
     }
 }
