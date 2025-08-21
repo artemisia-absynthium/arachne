@@ -11,21 +11,23 @@
 
 import Foundation
 
-class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionTaskDelegate {
-    private let didResumeDownload: (Int64, Int64) -> Void
-    private let didWriteData: (Int64, Int64, Int64) -> Void
-    private let didCompleteTask: (URL?, URLResponse?, Error?) -> Void
+final class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionTaskDelegate {
+    private let didResumeDownload: (@Sendable (Int64, Int64) -> Void)?
+    private let didWriteData: @Sendable (Int64, Int64, Int64) -> Void
+    private let didCompleteTask: @Sendable (URL, URLResponse?) -> Void
+    private let didFailTask: @Sendable (Error) -> Void
 
-    private var downloadedFileURL: URL?
-    private var fileWriteError: Error?
+    // Isolation is guaranteed by the fact that URLSession delegates' execution is serial
+    private nonisolated(unsafe) var fileWriteError: Error?
 
-    init(didResumeDownload: @escaping (Int64, Int64) -> Void,
-         didWriteData: @escaping (Int64, Int64, Int64) -> Void,
-         didCompleteTask: @escaping (URL?, URLResponse?, Error?) -> Void) {
+    init(didResumeDownload: (@Sendable (Int64, Int64) -> Void)?,
+         didWriteData: @escaping @Sendable (Int64, Int64, Int64) -> Void,
+         didCompleteTask: @escaping @Sendable (URL, URLResponse?) -> Void,
+         didFailTask: @escaping @Sendable (Error) -> Void) {
         self.didResumeDownload = didResumeDownload
         self.didWriteData = didWriteData
         self.didCompleteTask = didCompleteTask
-        self.downloadedFileURL = nil
+        self.didFailTask = didFailTask
     }
 
     // MARK: - URLSessionDownloadDelegate
@@ -39,14 +41,14 @@ class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionT
                 try FileManager.default.removeItem(at: tempDestination)
             }
             try FileManager.default.copyItem(at: location, to: tempDestination)
-            downloadedFileURL = tempDestination
+            didCompleteTask(tempDestination, downloadTask.response)
         } catch {
             fileWriteError = error
         }
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
-        didResumeDownload(fileOffset, expectedTotalBytes)
+        didResumeDownload?(fileOffset, expectedTotalBytes)
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
@@ -56,7 +58,9 @@ class ArachneDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionT
     // MARK: - URLSessionTaskDelegate
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        didCompleteTask(downloadedFileURL, task.response, error ?? fileWriteError)
+        if let anyError = error ?? fileWriteError {
+            didFailTask(anyError)
+        }
         session.invalidateAndCancel()
     }
 }

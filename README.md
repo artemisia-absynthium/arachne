@@ -1,6 +1,6 @@
 # Arachne
 
-[![Swift](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml)
+[![Swift](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml?branch=main)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d00911ec2c7048888abff2642b7ca6f5)](https://app.codacy.com/gh/artemisia-absynthium/arachne/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![codecov](https://codecov.io/gh/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/gh/artemisia-absynthium/arachne)
 
@@ -204,6 +204,7 @@ Add the following as a dependency to your `Package.swift`:
 ```swift
 .package(url: "https://github.com/artemisia-absynthium/arachne.git", .upToNextMajor(from: "0.6.1"))
 ```
+
 and then specify "Arachne" as a dependency of the Target in which you wish to use it.
 
 ### Cocoapods
@@ -213,6 +214,7 @@ Support for CocoaPods has been discontinued since version 0.5.0, in order to ins
 ## Roadmap
 
 Currently supported tasks are
+
 * `bytes`
 * `data`
 * `download`
@@ -220,6 +222,7 @@ Currently supported tasks are
 * Resumable download and download progress updates
 
 Next steps will be 🚧
+
 * Add support for resumable upload
 * Upload progress updates
 * Unit test specially for resumable download

@@ -11,7 +11,7 @@
 import Foundation
 
 /// Implement this protocol if you want to handle the request steps, e.g. logging messages.
-public protocol ArachnePlugin {
+public protocol ArachnePlugin: Sendable {
     /// This function gets called immediately before the request is sent.
     /// - Parameter request: the final request before it's sent.
     func handle(request: URLRequest)

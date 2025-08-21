@@ -11,7 +11,7 @@
 import Foundation
 
 /// Build an `enum` that extends this `Protocol` to represent your API service.
-public protocol ArachneService {
+public protocol ArachneService: Sendable {
     /// The complete base URL, example: `"https://www.myserver.io/v1"`
     var baseUrl: String { get }
 
