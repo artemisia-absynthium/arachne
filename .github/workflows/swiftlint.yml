@@ -1,0 +1,23 @@
+name: SwiftLint
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '26.0-beta'
+    - name: Run SwiftLint
+      run: |
+        swiftlint lint --strict --working-directory Sources
+        swiftlint lint --strict --working-directory Tests
