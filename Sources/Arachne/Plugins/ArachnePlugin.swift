@@ -26,6 +26,7 @@ public protocol ArachnePlugin: Sendable {
     /// - Parameters:
     ///   - error: the error that will be thrown.
     ///   - request: the `URLRequest` that generated the error.
-    ///   - output: the output, if any, retrieved from the resource, conveniently wrapped in an enum with the possible data types
+    ///   - output: the output, if any, retrieved from the resource,
+    ///   conveniently wrapped in an enum with the possible data types
     func handle(error: any Error, request: URLRequest, output: AROutput?)
 }

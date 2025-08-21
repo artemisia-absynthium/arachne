@@ -61,7 +61,8 @@ public extension ArachneService {
 
     /// Utility method to get the `URLRequest` for a target
     /// - Throws: `URLError` if any of the `URL` components are invalid.
-    /// > Tip: The output request is not modified using the `requestModifier` you set using ``ArachneProvider/with(requestModifier:)``, you may want to use ``ArachneProvider/urlRequest(for:)``.
+    /// > Tip: The output request is not modified using the `requestModifier` you set using
+    /// ``ArachneProvider/with(requestModifier:)``, you may want to use ``ArachneProvider/urlRequest(for:)``.
     internal func urlRequest() throws -> URLRequest {
         return composedRequest(for: self, url: try url(), timeoutInterval: timeoutInterval)
     }
