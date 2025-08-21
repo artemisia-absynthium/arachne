@@ -2,7 +2,7 @@
 
 [![Swift](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml?branch=main)
 [![CodeQL](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql)
-[![codecov](https://codecov.io/gh/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/gh/artemisia-absynthium/arachne)
+[![codecov](https://codecov.io/github/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/github/artemisia-absynthium/arachne)
 
 Arachne is a lightweight, minimalistic, zero dependencies networking layer for apps using [Swift Concurrency (async/await)](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) or [Combine](https://developer.apple.com/documentation/combine) (support to Combine will be discontinued) developed in Swift, that provides an opinionated abstraction layer to remove boilerplate code.
 
