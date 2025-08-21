@@ -11,7 +11,7 @@
 import Foundation
 
 /// Use ``ArachneProvider`` to make requests to a specific ``ArachneService``.
-public struct ArachneProvider<T: ArachneService>: Sendable {
+public struct ArachneProvider<T>: Sendable where T: ArachneService {
     private let urlSession: URLSession
     private let requestModifier: (@Sendable (T, inout URLRequest) async throws -> Void)?
     private let plugins: [ArachnePlugin]?
