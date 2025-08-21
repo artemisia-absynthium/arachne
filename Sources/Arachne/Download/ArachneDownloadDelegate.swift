@@ -3,7 +3,7 @@
 // which provides the same behavior of async tasks before redirecting to a user defined delegate
 // This source file is part of the Arachne open source project
 //
-// Copyright (c) 2023 artemisia-absynthium
+// Copyright (c) 2023 - 2025 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information

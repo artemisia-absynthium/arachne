@@ -1,8 +1,11 @@
 //
-//  ArachneProvider+Upload.swift
-//  Arachne
+// ArachneProvider+Upload.swift - the provider upload methods implementation
+// This source file is part of the Arachne open source project
 //
-//  Created by Cristina De Rito on 21/08/25.
+// Copyright (c) 2021 - 2025 artemisia-absynthium
+// Licensed under MIT
+//
+// See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
 //
 
 import Foundation
@@ -22,18 +25,7 @@ extension ArachneProvider {
         plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? urlSession
         do {
-            let (responseData, response) = if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
-                try await currentSession.upload(for: request, from: bodyData)
-            } else {
-                try await withCheckedThrowingContinuation { continuation in
-                    currentSession.uploadTask(with: request, from: bodyData) { data, response, error in
-                        guard let data, let response, error == nil else {
-                            return continuation.resume(throwing: ARError.missingData(nil, response))
-                        }
-                        continuation.resume(returning: (data, response))
-                    }.resume()
-                }
-            }
+            let (responseData, response) = try await currentSession.upload(for: request, from: bodyData)
             return try handleResponse(
                 target: target,
                 data: responseData,
@@ -58,18 +50,7 @@ extension ArachneProvider {
         plugins?.forEach { $0.handle(request: request) }
         let currentSession = session ?? urlSession
         do {
-            let (responseData, response) = if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
-                try await currentSession.upload(for: request, fromFile: fileURL)
-            } else {
-                try await withCheckedThrowingContinuation { continuation in
-                    currentSession.uploadTask(with: request, fromFile: fileURL) { data, response, error in
-                        guard let data, let response, error == nil else {
-                            return continuation.resume(throwing: ARError.missingData(nil, response))
-                        }
-                        continuation.resume(returning: (data, response))
-                    }.resume()
-                }
-            }
+            let (responseData, response) = try await currentSession.upload(for: request, fromFile: fileURL)
             return try handleResponse(
                 target: target,
                 data: responseData,

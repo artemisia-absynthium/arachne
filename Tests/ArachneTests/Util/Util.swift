@@ -1,7 +1,7 @@
 //
 // Util.swift - Test utils file
 //
-// Copyright (c) 2024 artemisia-absynthium
+// Copyright (c) 2024 - 2025 artemisia-absynthium
 // Licensed under MIT
 //
 // See https://github.com/artemisia-absynthium/arachne/blob/main/LICENSE for license information
