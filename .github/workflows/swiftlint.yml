@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  swiftlint:
+    name: SwiftLint
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v5
