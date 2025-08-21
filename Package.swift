@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Arachne",
     platforms: [
-        .macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v7), .visionOS(.v1), .macCatalyst(.v13), .driverKit(.v19)
+        .macOS(.v12), .iOS(.v15), .tvOS(.v15), .watchOS(.v8), .visionOS(.v2), .macCatalyst(.v15)
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
