@@ -1,6 +1,8 @@
 # Arachne
 
-[![Swift](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml?branch=main)
+[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fartemisia-absynthium%2Farachne%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/artemisia-absynthium/arachne)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fartemisia-absynthium%2Farachne%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/artemisia-absynthium/arachne)  
+[![Swift CI](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml/badge.svg)](https://github.com/artemisia-absynthium/arachne/actions/workflows/swift.yml?branch=main)
 [![CodeQL](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/artemisia-absynthium/arachne/actions/workflows/github-code-scanning/codeql)
 [![codecov](https://codecov.io/github/artemisia-absynthium/arachne/branch/main/graph/badge.svg?token=SE49QJW0M3)](https://codecov.io/github/artemisia-absynthium/arachne)
 
