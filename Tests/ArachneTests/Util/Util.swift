@@ -20,3 +20,13 @@ var sampleImageData: Data {
     }
     return FileManager.default.contents(atPath: path)!
 }
+
+struct Platform {
+    static var isWatchOS: Bool {
+        #if os(watchOS)
+        return true
+        #else
+        return false
+        #endif
+    }
+}

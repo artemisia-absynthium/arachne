@@ -33,9 +33,6 @@ jobs:
           - platform: "visionOS"
             destination: "platform=visionOS Simulator"
             device: "Apple Vision"
-          - platform: "macCatalyst"
-            destination: "platform=macOS,variant=Mac Catalyst"
-            device: "My Mac"
 
     steps:
     - uses: actions/checkout@v5

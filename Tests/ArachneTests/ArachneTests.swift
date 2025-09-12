@@ -70,7 +70,8 @@ class ArachneTests {
         try #require(builtRequest.value(forHTTPHeaderField: "Content-Length") == nil)
     }
 
-    @Test("POST request gets executed fine and body is as expected")
+    @Test("POST request gets executed fine and body is as expected",
+        .disabled(if: Platform.isWatchOS, "Stubbing not supported on watchOS"))
     func testPost() async throws {
         let builtRequest = try MyServiceWithDefaults.postSomething.urlRequest()
         try #require(builtRequest.httpBody == Data("I'm posting something".utf8))
@@ -144,7 +145,7 @@ class ArachneTests {
         try #require(count == 114521, "Unexpected number of bytes")
     }
 
-    @Test("I can upload data")
+    @Test("I can upload data", .disabled(if: Platform.isWatchOS, "Stubbing not supported on watchOS"))
     func testUploadData() async throws {
         let provider = ArachneProvider<MyService>(urlSession: session)
         let (data, response) = try await provider.upload(.plainText, from: sampleImageData)
@@ -154,7 +155,7 @@ class ArachneTests {
         try #require(httpResponse?.statusCode == 200, "Status code is different than expected")
     }
 
-    @Test("I can upload file")
+    @Test("I can upload file", .disabled(if: Platform.isWatchOS, "Stubbing not supported on watchOS"))
     func testUploadFile() async throws {
         let provider = ArachneProvider<MyService>(urlSession: session)
         let (data, response) = try await provider.upload(.plainText, fromFile: sampleImageUrl)
