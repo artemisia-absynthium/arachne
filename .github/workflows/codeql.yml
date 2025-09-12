@@ -89,8 +89,7 @@ jobs:
         xcodebuild \
           -scheme Arachne build \
           -destination "generic/platform=macOS" \
-          -skipPackagePluginValidation \
-          -arch arm64
+          -skipPackagePluginValidation
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
