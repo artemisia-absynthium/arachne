@@ -1,0 +1,7 @@
+# Sync config — managed by setup-project-ai skill
+# Edit this file to change which rule categories are synced into .claude/rules/synced/.
+# Category names match directories under rules/ in artemisia-absynthium/claude-setup.
+swift
+visionos
+xcode
+mac

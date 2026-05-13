@@ -1,0 +1,93 @@
+name: Sync Claude Rules
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout project repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ssh-key: ${{ secrets.CLAUDE_RULES_DEPLOY_KEY }}
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Checkout claude-setup repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          repository: artemisia-absynthium/claude-setup
+          path: .tmp-claude-rules
+
+      - name: Migrate shared/ to synced/ (one-time)
+        run: |
+          for dir in ".claude/rules" ".claude/skills"; do
+            if [[ -d "$dir/shared" && ! -d "$dir/synced" ]]; then
+              mv "$dir/shared" "$dir/synced"
+              echo "Migrated $dir/shared → $dir/synced"
+            fi
+          done
+
+      - name: Sync rules into synced/
+        run: |
+          RULES_SRC=".tmp-claude-rules/rules"
+          RULES_DST=".claude/rules/synced"
+          CONFIG_FILE=".claude/rules-sync"
+
+          mkdir -p "$RULES_DST"
+
+          if [[ ! -f "$CONFIG_FILE" ]]; then
+            echo "No $CONFIG_FILE found — syncing all categories (backward-compat mode)"
+            rsync -av --delete "$RULES_SRC/" "$RULES_DST/"
+          else
+            echo "Reading categories from $CONFIG_FILE"
+            RSYNC_ARGS=(--include="workflow/***")  # always sync — behavioral trigger must not be opt-out
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              line="${line#"${line%%[![:space:]]*}"}"
+              line="${line%"${line##*[![:space:]]}"}"
+              [[ -z "$line" || "$line" == \#* ]] && continue
+              if [[ ! -d "$RULES_SRC/$line" ]]; then
+                echo "WARNING: category '$line' not found in upstream rules — skipping"
+                continue
+              fi
+              echo "  Syncing category: $line"
+              RSYNC_ARGS+=(--include="$line/***")
+            done < "$CONFIG_FILE"
+
+            if [[ ${#RSYNC_ARGS[@]} -eq 0 ]]; then
+              echo "ERROR: no valid categories found in $CONFIG_FILE — aborting to avoid wiping synced/"
+              exit 1
+            fi
+
+            rsync -av --delete \
+              --include="*/" \
+              "${RSYNC_ARGS[@]}" \
+              --exclude="*" \
+              "$RULES_SRC/" "$RULES_DST/"
+          fi
+
+      - name: Sync skills into .claude/skills/synced/
+        run: |
+          SKILLS_SRC=".tmp-claude-rules/skills"
+          SKILLS_DST=".claude/skills/synced"
+          mkdir -p "$SKILLS_DST"
+          rsync -av --delete "$SKILLS_SRC/" "$SKILLS_DST/"
+          rm -rf .tmp-claude-rules
+
+      - name: Commit and push if changed
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .claude/rules/synced .claude/skills/synced
+          if git diff --cached --quiet; then
+            echo "No changes — nothing to commit"
+          else
+            git commit -m "chore: sync Claude rules and skills from upstream"
+            git push origin "$DEFAULT_BRANCH"
+          fi
