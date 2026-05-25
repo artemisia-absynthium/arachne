@@ -1,6 +1,5 @@
 ---
-description: Package management — SPM only; no CocoaPods or Carthage
-globs:
+paths:
   - "**/*.swift"
   - "**/Package.swift"
   - "**/*.xcodeproj/**"

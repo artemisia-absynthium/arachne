@@ -1,6 +1,5 @@
 ---
-description: Swift code style — Logger, file headers, import grouping, naming, access control, SwiftLint
-globs:
+paths:
   - "**/*.swift"
 ---
 
@@ -63,9 +62,45 @@ No blank line within a group; one blank line between groups.
 
 - State types: `*State`. Views: `*View`. View models: `*ViewModel`.
 - `final class` for state types not intended for subclassing.
-- `// MARK: -` sections: `Properties`, `Initializer`, `Helper Functions`, etc.
 - Access control: `private` for implementation details; expose only what callers need.
   Types used across modules are `public`.
+
+## Member ordering
+
+Within every type, members appear in this order — each section separated by a `// MARK: -` comment:
+
+1. Nested types
+2. Properties
+3. Initializer(s)
+4. Protocol conformance methods (one `// MARK: - <ProtocolName>` per conformance)
+5. Private helpers
+
+If a file has members scattered outside this order (e.g. nested types mid-file, protocol methods interleaved with helpers), reorder as part of the implementation — not as a separate step.
+
+```swift
+final class MyViewModel {
+
+    // MARK: - Nested types
+
+    enum State { case idle, loading, failed(Error) }
+
+    // MARK: - Properties
+
+    private(set) var state: State = .idle
+
+    // MARK: - Initializer
+
+    init(...) { ... }
+
+    // MARK: - SomeProtocol
+
+    func requiredMethod() { ... }
+
+    // MARK: - Private helpers
+
+    private func fetchData() async { ... }
+}
+```
 
 ## Deletion
 
@@ -79,5 +114,6 @@ When removing code, delete it. Never comment it out.
 | `implicit_return` | Add explicit `return` where required |
 | `multiline_arguments` | Each argument on its own line when breaking |
 | `multiline_parameters` | Each parameter on its own line when breaking |
+| `function_body_length` | Limit is 50 lines. A violation is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas). |
 
 Run `swiftlint <TargetName>` before submitting any Swift change.

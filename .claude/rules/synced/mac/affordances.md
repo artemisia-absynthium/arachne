@@ -1,6 +1,5 @@
 ---
-description: Mac app affordances — menus, keyboard shortcuts, windows, drag-and-drop, native chrome
-globs:
+paths:
   - "**/*.swift"
 ---
 

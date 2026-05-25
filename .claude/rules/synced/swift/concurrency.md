@@ -1,6 +1,5 @@
 ---
-description: Swift concurrency — @MainActor, @Observable, async/await patterns
-globs:
+paths:
   - "**/*.swift"
 ---
 
@@ -18,7 +17,13 @@ final class MyViewModel {
 }
 ```
 
-Never use `ObservableObject` / `@Published`. Never use Combine or completion-handler callbacks.
+Never use `ObservableObject` / `@Published`. Never use Combine or completion-handler callbacks for
+state management or concurrency — use `@Observable` and async/await instead.
+
+Combine is acceptable where it genuinely fits and async/await would be more verbose: reactive KVO
+observation (e.g. `UserDefaults.publisher(for:)`), multi-publisher merging, or bridging legacy
+delegate patterns into a stream. If you reach for Combine, add a one-line comment explaining why
+async/await is the worse fit in that specific case.
 
 ## MainActor discipline
 
@@ -33,7 +38,7 @@ Task { @MainActor in self.isLoading = false }
 
 ## Async closures and capture lists
 
-Async closures that capture `self` always use `[weak self]`:
+Async closures that capture `self` always use `[weak self]`. Always annotate `@MainActor` explicitly — do not rely on inference from the enclosing method, which can silently break if isolation changes:
 
 ```swift
 Task { @MainActor [weak self] in
@@ -56,3 +61,14 @@ state changes belongs in a view model method, called from `.task { }` or a butto
 ## Swift 6 actor isolation
 
 Do not add `@preconcurrency` or `nonisolated` to silence compiler errors without understanding the isolation boundary. Both suppress checks that exist to prevent data races — find and fix the real crossing instead.
+
+## Inter-component communication
+
+Do not use `NotificationCenter` for in-app events. It bypasses type safety, couples unrelated components through a global name-based bus, and works against Swift 6's data-race model.
+
+Prefer in order of fit:
+- **Direct `async throws` call** — when the caller already holds a reference to the callee
+- **`@Observable` property** — when the receiver needs to observe state it can already access
+- **Typed `PassthroughSubject<T, Never>`** — when one-to-many broadcast is genuinely needed (e.g. bridging a delegate callback to multiple subscribers)
+
+`NotificationCenter` is only acceptable for framework-mandated system broadcasts (`EAAccessory`, `UIApplication`, `UIDevice`, etc.) that have no Swift alternative.

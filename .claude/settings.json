@@ -1,0 +1,9 @@
+{
+    "matcher": "Edit|Write|MultiEdit",
+    "hooks": [
+        {
+        "type": "command",
+        "command": "file=$(jq -r '.file_path // empty'); case \"$file\" in *'.claude/rules/synced'*) echo 'ERROR: .claude/rules/synced/ is sync-managed — edits are overwritten by the weekly sync. Add rules to .claude/rules/ instead.' >&2; exit 2;; esac"
+        }
+    ]
+}

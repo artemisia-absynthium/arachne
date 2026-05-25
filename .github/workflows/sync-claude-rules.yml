@@ -9,7 +9,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # needed when CLAUDE_RULES_DEPLOY_KEY is absent; harmless when deploy key overrides auth
     steps:
       - name: Checkout project repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -22,15 +22,6 @@ jobs:
         with:
           repository: artemisia-absynthium/claude-setup
           path: .tmp-claude-rules
-
-      - name: Migrate shared/ to synced/ (one-time)
-        run: |
-          for dir in ".claude/rules" ".claude/skills"; do
-            if [[ -d "$dir/shared" && ! -d "$dir/synced" ]]; then
-              mv "$dir/shared" "$dir/synced"
-              echo "Migrated $dir/shared → $dir/synced"
-            fi
-          done
 
       - name: Sync rules into synced/
         run: |
@@ -70,12 +61,13 @@ jobs:
               "$RULES_SRC/" "$RULES_DST/"
           fi
 
-      - name: Sync skills into .claude/skills/synced/
+      - name: Sync skills into .claude/skills/
         run: |
           SKILLS_SRC=".tmp-claude-rules/skills"
-          SKILLS_DST=".claude/skills/synced"
+          SKILLS_DST=".claude/skills"
           mkdir -p "$SKILLS_DST"
-          rsync -av --delete "$SKILLS_SRC/" "$SKILLS_DST/"
+          # No --delete: project-local skills alongside synced ones must not be removed
+          rsync -av "$SKILLS_SRC/" "$SKILLS_DST/"
           rm -rf .tmp-claude-rules
 
       - name: Commit and push if changed
@@ -84,7 +76,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .claude/rules/synced .claude/skills/synced
+          git add .claude/rules/synced .claude/skills
           if git diff --cached --quiet; then
             echo "No changes — nothing to commit"
           else

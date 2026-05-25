@@ -1,6 +1,5 @@
 ---
-description: Xcode MCP tool usage — file operations, directory listing, project structure
-globs:
+paths:
   - "**/*.swift"
   - "**/*.xcodeproj/**"
 ---
@@ -52,4 +51,5 @@ Prefer Xcode MCP tools over filesystem equivalents for all operations inside an 
 
 - **Tab identifier**: every Xcode MCP tool requires a `tabIdentifier`. Call `mcp__xcode__XcodeListWindows` at the start of a session to discover the correct value — do not hardcode it, as it depends on window open order.
 - `mcp__xcode__XcodeMakeDir` requires `mcp__xcode__XcodeLS` to have been called first in the same session or it will fail with an error about unknown project structure.
-- A project can mix synchronized folders and legacy groups. Do not assume everything is one or the other — check with `XcodeLS` or inspect `project.pbxproj` for `PBXFileSystemSynchronizedRootGroup` vs `PBXGroup`. `XcodeWrite` is safe for both; it adds to `project.pbxproj` only when the parent is a legacy group.
+- A project can mix synchronized folders and legacy groups. Do not assume everything is one or the other — check with `XcodeLS` or inspect `project.pbxproj` for `PBXFileSystemSynchronizedRootGroup` vs `PBXGroup`. For **legacy groups** (`PBXGroup`), use `XcodeWrite` — it adds a `PBXFileReference` and compile sources entry. For **synchronized folders** (`PBXFileSystemSynchronizedRootGroup`), use the filesystem `Write` tool directly into the synced directory instead — `XcodeWrite` places the file at the project root and omits it from the compile sources phase.
+- **Git staging**: `XcodeUpdate` and `XcodeWrite` do NOT auto-stage their changes. Always `git add` the modified files explicitly before committing. (`XcodeRM` stages deletions automatically — the asymmetry is easy to miss.)

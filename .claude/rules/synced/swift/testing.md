@@ -1,6 +1,5 @@
 ---
-description: Swift Testing framework — @Test, @Suite, #expect, #require. Not XCTest.
-globs:
+paths:
   - "**/*Tests*/**/*.swift"
   - "**/*Test.swift"
 ---
@@ -14,12 +13,12 @@ This project uses the **Swift Testing** framework. Do not use XCTest patterns.
 ```swift
 import Testing
 
-@Suite("ProductsViewModel")
-struct ProductsViewModelTests {
+@Suite("ItemListViewModel")
+struct ItemListViewModelTests {
 
-    @Test("loads product descriptor from JSON")
+    @Test("loads item descriptor from JSON")
     func loadsDescriptor() async throws {
-        let viewModel = ProductsViewModel()
+        let viewModel = ItemListViewModel()
         let object = try #require(await viewModel.load())
         #expect(object.property == "expected")
     }
@@ -50,6 +49,34 @@ StoreKit suites using `SKTestSession` must be marked `.serialized` — `SKTestSe
 @Suite(.serialized)
 struct StoreKitTests { ... }
 ```
+
+## Test doubles
+
+Do not introduce a protocol whose sole purpose is to allow mocking in tests (the protocol-for-testability anti-pattern). This adds indirection without load-bearing benefit and contradicts Apple's own guidance (reiterated at WWDC sessions). Use concrete injection instead:
+
+| Dependency | Testable seam |
+|------------|---------------|
+| Networking / `URLSession` | `URLSession(configuration:)` with a registered `URLProtocol` subclass |
+| `UserDefaults` | `UserDefaults(suiteName: UUID().uuidString)!` — isolated suite per test, no cleanup needed |
+| File I/O | Inject a `URL` or path pointing to a temp directory (`FileManager.default.temporaryDirectory`) |
+| `@MainActor` class needing overrides | Subclass and override the specific methods under test |
+
+```swift
+// Good — isolated suite, no cross-test contamination, no protocol invented
+private func isolatedDefaults() -> UserDefaults {
+    UserDefaults(suiteName: UUID().uuidString)!
+}
+
+@Test("setting store persists id")
+func settingStorePersistsId() {
+    let defaults = isolatedDefaults()
+    let state = StoreState(network: network, userDefaults: defaults)
+    state.currentStore = makeStore(id: "42")
+    #expect(defaults.selectedStoreId == "42")
+}
+```
+
+For networking, register a `URLProtocol` subclass on the session configuration so the real `URLSession` code path executes with controlled responses — this catches serialisation bugs that protocol mocks silently hide.
 
 ## UI tests
 

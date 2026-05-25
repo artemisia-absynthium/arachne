@@ -1,6 +1,5 @@
 ---
-description: visionOS / RealityKit — RealityView lifecycle, makeContent, attachments, entity rules, concurrency
-globs:
+paths:
   - "**/*.swift"
 ---
 
