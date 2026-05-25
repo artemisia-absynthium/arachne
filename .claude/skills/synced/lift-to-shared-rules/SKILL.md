@@ -11,11 +11,14 @@ Run the following checks and set mode before doing anything else:
 ```bash
 echo "${CLAUDE_SETUP_PATH:-UNSET}"
 [[ -n "$CLAUDE_SETUP_PATH" && -d "$CLAUDE_SETUP_PATH/.git" ]] && echo "DIR: OK" || echo "DIR: MISSING"
-gh api repos/artemisia-absynthium/claude-setup --jq '.permissions.push' 2>/dev/null
+git -C "$CLAUDE_SETUP_PATH" remote -v 2>/dev/null | head -4
+git -C "$CLAUDE_SETUP_PATH" push --dry-run 2>&1 | tail -1
 ```
 
-- **Owner mode**: `CLAUDE_SETUP_PATH` is set, the directory exists, and push permission is `true`. Work is done directly in `$CLAUDE_SETUP_PATH`.
-- **Contributor mode**: any condition fails — env var unset, directory missing, or no push access. State which condition triggered contributor mode, then proceed with the fork/PR flow (Step 6b).
+- **Owner mode**: `CLAUDE_SETUP_PATH` is set, the directory exists, and the dry-run push succeeds (exit 0 / "Everything up-to-date"). Work is done directly in `$CLAUDE_SETUP_PATH`.
+- **Contributor mode**: any condition fails — env var unset, directory missing, or dry-run push is rejected. State which condition triggered contributor mode, then proceed with the fork/PR flow (Step 7b).
+
+Do not use `gh api` to check push permission — it reads the permission field for the authenticated `gh` account, which may differ from the SSH identity used by the repo's git remote.
 
 ## Step 1 — Identify target
 
@@ -29,7 +32,7 @@ Determine the category and file:
   - `README.md` — add a row to the rules table and add the category to the "Available categories" line
   - `CLAUDE.md` — add the category to the "Available categories" line in the "Category config" section
 
-In owner mode, `<repo>` is `$CLAUDE_SETUP_PATH`. In contributor mode, `<repo>` is the temp working directory created in Step 6b.
+In owner mode, `<repo>` is `$CLAUDE_SETUP_PATH`. In contributor mode, `<repo>` is the temp working directory created in Step 7b.
 
 ## Step 2 — Write the change
 
@@ -49,7 +52,24 @@ globs:
 
 Write the rule in the same style as existing files in the repo: direct, imperative, code examples where they clarify rather than pad.
 
-## Step 3 — Check coherence
+## Step 3 — Anonymize
+
+Before proceeding, scan the content written in Step 2 for domain-specific references and replace them with generic equivalents. This applies to:
+
+- **Company or brand names** (e.g. `Acme`, `MyOrg`) → use a generic placeholder (`MyCompany`, `MyBrand`, or omit)
+- **Product or app names** (e.g. `AcmeApp`, `AcmeBackend`) → `MyApp`, `MyService`, etc.
+- **Internal type or class names** tied to a specific domain (e.g. `ProductCatalogViewModel`) → use a generic structural equivalent (`ItemListViewModel`, `ContentViewModel`)
+- **Internal file paths or module names** (e.g. `Sources/AcmeCore/`) → `Sources/MyModule/`
+- **Asset and resource names** tied to a specific project (e.g. `heroBackground`, `brandLogo`) → use generic placeholders (`myIcon`, `myImage`)
+- **Org-specific identifiers** in code examples (bundle IDs, API keys, custom URL schemes) → use clearly placeholder values (`com.example.myapp`, `<YOUR_API_KEY>`)
+
+If a term is structural and not domain-specific (e.g. a Swift keyword, a framework name like `SwiftUI`), leave it as-is.
+
+This rule applies to **all text produced by this skill** — rule file content, commit messages, PR titles, and PR bodies. Do not mention an internal name even when describing what was changed.
+
+Show a summary of substitutions made (or "No substitutions needed" if the content was already generic).
+
+## Step 4 — Check coherence
 
 Read every file under `<repo>/rules/` (all categories). For each, check:
 
@@ -59,31 +79,31 @@ Read every file under `<repo>/rules/` (all categories). For each, check:
 
 If issues are found and the resolution is clear, apply it before proceeding — either by adjusting the new content or updating the conflicting existing file. If the resolution is ambiguous, stop and ask the user how to proceed before making any further changes.
 
-Record findings — they feed the automated section of the PR template in Step 5.
+Record findings — they feed the automated section of the PR template in Step 6.
 
-## Step 4 — Show the diff
+## Step 5 — Show the diff
 
 ```bash
 git -C <repo> diff
 git -C <repo> status
 ```
 
-## Step 5 — Confirmation gate
+## Step 6 — Confirmation gate
 
 Before any commit or PR is opened, present all of the following and wait for explicit user confirmation:
 
-**1. Full diff** (from Step 4)
+**1. Full diff** (from Step 5)
 
 **2. Filled PR template** — both sections, each item with ✅ or ❌ and a one-line justification or explanation:
 
-*Automated checks* (pre-populated from Step 3 findings):
+*Automated checks* (pre-populated from Step 4 findings):
 - No duplication found across existing rules
 - No contradiction found across existing rules
 - No merge opportunity identified (or: content merged into an existing file instead)
 
 *Author checklist* (evaluated and attested by Claude):
 - Frontmatter has a `description` (one line) and `globs` matching the category's file types
-- Applies to any project in this category — no internal file paths, type names, or org-specific references
+- Anonymization applied (Step 3) — no domain-specific names, paths, or identifiers remain
 - Not a restatement of Apple/framework documentation — captures a non-obvious constraint, gotcha, or decision
 - Non-obvious constraints include a short rationale (the *why*, not just the *what*)
 - Complex patterns include a code example
@@ -92,7 +112,7 @@ Before any commit or PR is opened, present all of the following and wait for exp
 
 If any item is ❌, surface it explicitly and ask the user how to proceed. Do not silently skip or auto-resolve.
 
-## Step 6a — Owner: commit and push
+## Step 7a — Owner: commit and push
 
 On confirmation:
 
@@ -104,7 +124,7 @@ git -C "$CLAUDE_SETUP_PATH" push
 
 Report success or any errors.
 
-## Step 6b — Contributor: fork, branch, and open PR
+## Step 7b — Contributor: fork, branch, and open PR
 
 On confirmation:
 
@@ -142,7 +162,7 @@ On confirmation:
    git -C "$WORK_DIR" push origin "$BRANCH"
    ```
 
-7. **Open the PR**, filling in the template from Step 5:
+7. **Open the PR**, filling in the template from Step 6:
    ```bash
    gh pr create \
      --repo artemisia-absynthium/claude-setup \
@@ -162,7 +182,7 @@ On confirmation:
    ## Author checklist
 
    - [x] Frontmatter complete
-   - [x] Category-general — no org-specific references
+   - [x] Anonymized — no domain-specific names, paths, or identifiers
    - [x] Captures non-obvious constraint/gotcha
    - [x] Rationale included
    - [x] Code example included (or: not applicable — rule is self-explanatory)

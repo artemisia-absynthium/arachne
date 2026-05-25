@@ -61,3 +61,4 @@ func load() async {
 **Switch on the full state, not on derived optionals.** A nil selection or missing value while `Loadable` is `.isLoading` or `.notRequested` is not an error — it means the data hasn't arrived yet. Only infer an error from `.failed` or from `.loaded` when the value is genuinely absent.
 
 **In SwiftUI, observe `isLoading()` alongside optional values.** When a load fails, the optional value stays `nil` — no change fires. An `onChange(of: loadable.isLoading())` observer is needed to catch the `true → false` transition and react to `.failed`.
+
