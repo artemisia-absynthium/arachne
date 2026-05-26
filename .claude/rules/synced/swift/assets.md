@@ -19,14 +19,4 @@ Image(.myIcon)
 Image("myIcon")
 ```
 
-**UIKit** (`UIImage(resource:)` requires iOS 17+)
-
-```swift
-// ✅
-UIImage(resource: .myIcon)
-
-// ❌
-UIImage(named: "myIcon")
-```
-
-The `UIImage(resource:)` initialiser is non-optional — no `guard let` or `!` needed, and no silent failure if the asset name is mistyped or later renamed.
+For UIKit (`UIImage(resource:)`), see `ios/assets.md`.

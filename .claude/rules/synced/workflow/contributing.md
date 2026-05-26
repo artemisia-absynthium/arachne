@@ -1,6 +1,6 @@
 ---
 description: Cross-project rule contribution — invoke lift-to-shared-rules when a generalizable pattern is found
-globs:
+paths:
   - "**/*"
 ---
 
