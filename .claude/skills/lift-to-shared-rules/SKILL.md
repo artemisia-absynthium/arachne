@@ -24,7 +24,7 @@ Do not use `gh api` to check push permission — it reads the permission field f
 
 Determine the category and file:
 
-- Known categories: `swift`, `visionos`, `xcode`, `mac`, `android`, `web`, `workflow`
+- Known categories: `swift`, `ios`, `visionos`, `xcode`, `mac`, `android`, `web`, `workflow`
 - Map the rule to the most specific applicable category
 - Target file: `<repo>/rules/<category>/<topic>.md`
 - If no existing file fits within a category, create a new one with a descriptive name
@@ -40,8 +40,7 @@ Edit or create the target file. Rule files use this frontmatter format:
 
 ```markdown
 ---
-description: <one-line summary — shown in skill/rule pickers>
-globs:
+paths:
   - "**/*.swift"   # adjust to the file types this rule applies to
 ---
 
@@ -135,14 +134,14 @@ On confirmation:
 
 2. **Fork the upstream repo** (idempotent — safe to run if a fork already exists):
    ```bash
-   gh repo fork artemisia-absynthium/claude-setup
+   gh repo fork artemisia-absynthium/ai-guidelines-sync
    ```
 
 3. **Clone the fork to a temp directory**:
    ```bash
    WORK_DIR=$(mktemp -d)
-   git clone "https://github.com/$GH_USER/claude-setup.git" "$WORK_DIR"
-   git -C "$WORK_DIR" remote add upstream https://github.com/artemisia-absynthium/claude-setup.git
+   git clone "https://github.com/$GH_USER/ai-guidelines-sync.git" "$WORK_DIR"
+   git -C "$WORK_DIR" remote add upstream https://github.com/artemisia-absynthium/ai-guidelines-sync.git
    git -C "$WORK_DIR" fetch upstream
    git -C "$WORK_DIR" rebase upstream/main
    ```
@@ -165,7 +164,7 @@ On confirmation:
 7. **Open the PR**, filling in the template from Step 6:
    ```bash
    gh pr create \
-     --repo artemisia-absynthium/claude-setup \
+     --repo artemisia-absynthium/ai-guidelines-sync \
      --head "$GH_USER:$BRANCH" \
      --title "<title>" \
      --body "$(cat <<'EOF'
