@@ -101,7 +101,7 @@ Before any commit or PR is opened, present all of the following and wait for exp
 - No merge opportunity identified (or: content merged into an existing file instead)
 
 *Author checklist* (evaluated and attested by Claude):
-- Frontmatter has a `description` (one line) and `globs` matching the category's file types
+- Frontmatter has a `paths:` key scoped to the category's file types
 - Anonymization applied (Step 3) — no domain-specific names, paths, or identifiers remain
 - Not a restatement of Apple/framework documentation — captures a non-obvious constraint, gotcha, or decision
 - Non-obvious constraints include a short rationale (the *why*, not just the *what*)

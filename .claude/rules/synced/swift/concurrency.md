@@ -72,3 +72,18 @@ Prefer in order of fit:
 - **Typed `PassthroughSubject<T, Never>`** — when one-to-many broadcast is genuinely needed (e.g. bridging a delegate callback to multiple subscribers)
 
 `NotificationCenter` is only acceptable for framework-mandated system broadcasts (`EAAccessory`, `UIApplication`, `UIDevice`, etc.) that have no Swift alternative.
+
+## Task.sleep API
+
+Use the `Duration`-based overload — never the legacy nanoseconds form:
+
+```swift
+// ✅
+try await Task.sleep(for: .seconds(1.5))
+try await Task.sleep(for: .milliseconds(500))
+
+// ❌ — legacy API, predates Swift 5.7's Clock-based sleep
+try await Task.sleep(nanoseconds: 1_500_000_000)
+```
+
+The nanoseconds form is easy to reach for from training data but has no place in modern Swift Concurrency code. The `Duration`-based form is readable, unit-safe, and mockable via the `Clock` protocol.
