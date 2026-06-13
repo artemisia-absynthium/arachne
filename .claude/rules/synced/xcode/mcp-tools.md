@@ -40,12 +40,24 @@ Prefer Xcode MCP tools over filesystem equivalents for all operations inside an 
 | Run a code snippet | `mcp__xcode__ExecuteSnippet` |
 | Search Apple docs | `mcp__xcode__DocumentationSearch` |
 
-## Diagnostics
+## Code intelligence
 
-| Task | Use |
-|------|-----|
-| Refresh code issues in a file | `mcp__xcode__XcodeRefreshCodeIssuesInFile` |
-| List navigator issues | `mcp__xcode__XcodeListNavigatorIssues` |
+When Xcode is the IDE for the project — whether an `.xcodeproj`/`.xcworkspace` or an SPM package opened in Xcode — query code intelligence (diagnostics, symbol navigation, documentation) through Xcode MCP, not through the standalone `sourcekit-lsp` exposed by the `LSP` tool / `swift-lsp` Claude Code plugin.
+
+Why:
+
+- `sourcekit-lsp` has no native Xcode-project backend. Its `defaultWorkspaceType` is `swiftPM`, `compilationDatabase`, or `buildServer` only. Without `xcode-build-server` writing a `buildServer.json`, it has no compile flags for Xcode targets and silently produces broken or hallucinated findings (e.g. "missing import" for a symbol that exists in another target).
+- Even with the `xcode-build-server` bridge, `sourcekit-lsp`'s index is *build-pinned*: it refreshes only after an Xcode / `xcodebuild` build. Xcode's hosted SourceKit instance, by contrast, indexes live — same engine, same diagnostics that drive the Issue Navigator squiggles.
+- Two diagnostic surfaces where one is wrong is worse than one surface that is right.
+
+| Need | Use | Not |
+|------|-----|-----|
+| Live compiler diagnostics for a file | `mcp__xcode__XcodeRefreshCodeIssuesInFile` | `LSP` |
+| Project-wide warnings/errors | `mcp__xcode__XcodeListNavigatorIssues` | `LSP` |
+| Find symbol declarations or call sites | `mcp__xcode__XcodeGrep` / `mcp__xcode__XcodeGlob` | `LSP` (`goToDefinition` / `findReferences`) |
+| Apple framework documentation | `mcp__xcode__DocumentationSearch` | guesswork |
+
+Keep the `swift-lsp` Claude Code plugin disabled on these projects (`"swift-lsp@claude-plugins-official": false` in `~/.claude/settings.json`). Install `xcode-build-server` (Homebrew) only for a discrete session that needs heavy cross-file semantic refactoring; disable again afterwards — it is not a permanent contract.
 
 ## Gotchas
 

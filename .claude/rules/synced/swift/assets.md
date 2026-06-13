@@ -20,3 +20,23 @@ Image("myIcon")
 ```
 
 For UIKit (`UIImage(resource:)`), see `ios/assets.md`.
+
+## Color assets — use ColorResource, not strings
+
+Xcode generates a type-safe `ColorResource` for every color set in an asset catalog. Same rationale as images: the string-name initializer cannot detect a renamed or missing asset until the wrong colour ships in the UI. The `ColorResource`-based initializer turns the same mistake into a compile error.
+
+Available iOS 17+ / macOS 14+ / tvOS 17+ / watchOS 10+ / visionOS 1+.
+
+**SwiftUI**
+
+```swift
+// ✅
+.tint(Color(.brandPrimary))
+.background(Color(.surface))
+.foregroundStyle(Color(.textPrimary))
+
+// ❌ — typo or rename fails silently
+Color("brandPrimary")
+```
+
+When targeting older OSes, keep the string init but add a `// TODO: upgrade to Color(ColorResource) when minimum deployment raises to iOS 17 / macOS 14` comment so the spot is easy to find.

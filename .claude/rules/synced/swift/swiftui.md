@@ -34,3 +34,28 @@ Using `@State var model: MyModel` on a property that receives a passed-in `@Obse
 
 Previews must not hit the network or any real persistent store. Provide in-memory
 test doubles or static fixture data.
+
+## List backgrounds — strip the system fill before painting a custom one
+
+A `List` (or `Form`, `ScrollView`) paints the standard system grouped background on top of whatever `.background(...)` you set. The custom background never reaches the screen.
+
+To use a custom background under a scrollable view, combine **two** modifiers — the order doesn't matter, but skipping the first is the most common mistake:
+
+```swift
+// ✅
+List {
+    // rows
+}
+.scrollContentBackground(.hidden)        // strip the system fill
+.background(Color(.myBackground))        // now the custom paint shows
+
+// ❌ — system fill masks the custom background; List still looks default
+List {
+    // rows
+}
+.background(Color(.myBackground))
+```
+
+`scrollContentBackground(_:)` is iOS 16+ / iPadOS 16+ / macOS 13+ / visionOS 1+ / watchOS 9+ (no tvOS). On macOS 15+ it also controls the seamless window/titlebar appearance.
+
+Applies to `List`, `Form`, and `ScrollView`. `Form` and `List` paint the system fill by default; `ScrollView` does not, so it normally needs no modifier — but if you opt it into the seamless macOS chrome via `.scrollContentBackground(.visible)`, the symmetric rule applies in reverse.
