@@ -41,6 +41,32 @@ struct ItemListViewModelTests {
 Use `#require` for preconditions whose failure makes the rest of the test meaningless.
 Use `#expect` for all other assertions so failures accumulate.
 
+## `#expect(try …)` inside throwing closures
+
+`#expect(try …)` whose only throwing expressions live inside the macro arguments can fail to compile with "Errors thrown from here are not handled" (reported in the macro expansion) when nested inside a throwing closure — e.g. a database `write`/`read` block. The failure is shape-sensitive: visually identical code sometimes compiles. Don't fight it; use the two patterns that always work:
+
+```swift
+// ✅ (a) hoist the throwing reads into a binding, assert afterwards
+let counts = try db.read { d in
+    (items: try Item.fetchCount(d), orders: try Order.fetchCount(d))
+}
+#expect(counts.items == 9)
+#expect(counts.orders == 3)
+
+// ✅ (b) for throw assertions, wrap the entire closure call
+#expect(throws: DatabaseError.self) {
+    try db.write { d in try d.execute(sql: "DELETE FROM item WHERE id = 'i1'") }
+}
+
+// ❌ — may fail to compile depending on surrounding shape
+try db.write { d in
+    #expect(throws: DatabaseError.self) { try d.execute(sql: "…") }
+    #expect(try Item.fetchCount(d) == 9)
+}
+```
+
+Both patterns also read better: the transaction does the work, the assertions judge it.
+
 ## StoreKit tests
 
 StoreKit suites using `SKTestSession` must be marked `.serialized` — `SKTestSession` is not safe to run in parallel:
