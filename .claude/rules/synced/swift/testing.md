@@ -67,14 +67,45 @@ try db.write { d in
 
 Both patterns also read better: the transaction does the work, the assertions judge it.
 
-## StoreKit tests
+## Process-global fixtures — namespace per test, or serialize the suite
 
-StoreKit suites using `SKTestSession` must be marked `.serialized` — `SKTestSession` is not safe to run in parallel:
+Swift Testing runs tests in parallel by default. Any fixture with no per-test instance is
+shared by every test in the process, and parallel tests mutating it fail intermittently —
+the worst failure mode a suite can have. The tell is not "my tests share a type"; it's
+"my tests share something that cannot be instantiated per test": the StoreKit test
+environment (every `SKTestSession` controls the *same* environment), the keychain, a real
+filesystem path, environment variables, a static cache.
+
+Two remedies, in preference order:
+
+1. **Namespace per test** when the API allows — a `UserDefaults` suite or keychain
+   service named with a fresh `UUID`, a per-test temp directory. Parallelism survives and
+   ordering coupling becomes impossible.
+2. **Serialize the suite** when the fixture is truly singleton:
 
 ```swift
-@Suite(.serialized)
-struct StoreKitTests { ... }
+@Suite(.serialized)   // SKTestSession: one shared test environment per process
+struct StoreKitTests {
+
+    @Test func restoresNothingWhenNoTransactionsExist() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }   // runs even when an #expect fails
+        // ...
+    }
+}
 ```
+
+Clean up with `defer` immediately after acquiring the fixture — `#expect` records and
+continues on failure, so cleanup at the end of the happy path leaks state into the next
+test exactly when something already went wrong.
+
+StoreKitTest gotchas worth knowing before trusting a red test (observed on the iOS 26
+simulator): transactions minted by a mid-process `SKTestSession` — via
+`buyProduct(productIdentifier:)` or even a real `Product.purchase()` — can fail device
+verification (`invalidDeviceVerification`), and `setSimulatedError(_:forAPI:)` can
+register without ever firing. Never weaken a production `.verified` check to green such a
+test: cover what the platform verifies honestly, extract the unreachable branch into a
+pure function and test that, and document the gap.
 
 ## Test doubles
 
