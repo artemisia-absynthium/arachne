@@ -1,7 +1,6 @@
 ---
-description: No PR opens until four review passes run on the branch diff — design/SOLID, standard code review, security, concurrency (concrete lens per stack)
-paths:
-  - "**/*"
+name: pr-review-gate
+description: MANDATORY before opening any pull request, merging a branch, or when the user asks for PR checks, the review gate, or the four passes — runs four independent review passes (design/SOLID, standard code review, security, concurrency) on the full branch diff and resolves their findings. Invoke unasked when PR preparation begins.
 ---
 
 # Pre-PR Review Gate
@@ -13,14 +12,16 @@ The passes are independent: run them in parallel as subagents.
 
 1. **Design / SOLID review** — the Uncle Bob (Robert C. Martin) lens: type-level single
    responsibility, ownership, state lifetimes, dependency direction, the
-   `design-principles.md` thresholds and its full design review lens (SOLID, Clean
-   Architecture boundaries, GRASP, Clean Code hygiene, coupling laws). Explicit verdict on
-   whether any type accumulated responsibilities over the branch.
+   `design-principles.md` thresholds, and the full design review lens (load the
+   `design-review-lens` skill for the complete checklist: SOLID, Clean Architecture
+   boundaries, GRASP, Clean Code hygiene, coupling laws). Explicit verdict on whether
+   any type accumulated responsibilities over the branch.
 2. **Standard code review** — correctness, project conventions, error handling, test
    coverage (use the code-reviewer agent where available).
 3. **Security review** — adversarial pass over the diff: secrets/credentials in code or
    history, injection, unsafe file/archive/network handling (zip-slip, path traversal),
-   authn/authz gaps, supply chain (dependency pins, mutable refs), sensitive data in logs.
+   authn/authz gaps, supply chain (dependency pins, mutable refs), sensitive data in
+   logs, and location/EXIF metadata in committed media.
 4. **Concurrency review** — a dedicated pass, because concurrency bugs are the class most
    frequently introduced during development and least visible in a general review: shared
    mutable state across threads / isolation domains; state assumed unchanged across a
