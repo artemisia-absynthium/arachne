@@ -110,10 +110,26 @@ When removing code, delete it. Never comment it out.
 
 | Rule | Action |
 |------|--------|
-| `force_unwrapping` | Use `guard let` / `if let` — never `!` |
+| `force_unwrapping` | Use `guard let` / `if let` — never `!`. Sole exception: `URL(string:)` on a compile-time literal (below) |
 | `implicit_return` | Add explicit `return` where required |
 | `multiline_arguments` | Each argument on its own line when breaking |
 | `multiline_parameters` | Each parameter on its own line when breaking |
 | `function_body_length` | Limit is 50 lines. A violation is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas). |
 
 Run `swiftlint <TargetName>` before submitting any Swift change.
+
+### Sole force-unwrap exception — `URL(string:)` on a compile-time literal
+
+`URL(string: "…")!` is allowed when the argument is a hardcoded string literal. The parse is deterministic and environment-independent: a literal that parses today parses on every device forever, so no runtime failure path exists — an `if let` around it is a dead branch, and demanding one is overengineering. Do not flag existing literal-URL unwrap sites or propose cleanups for them.
+
+The exception dies the instant the argument stops being a literal — interpolation, a parameter, or a config value reinstates the full rule.
+
+```swift
+// ✅ — deterministic parse of a literal; no runtime failure path
+static let supportURL = URL(string: "https://example.com/support")!
+
+// ❌ — dynamic input; the unwrap can crash at runtime
+let url = URL(string: baseURLString + path)!
+```
+
+In projects that enable SwiftLint's `force_unwrapping` rule, pair the unwrap with the narrowly-scoped justified suppression from the warning-discipline policy.

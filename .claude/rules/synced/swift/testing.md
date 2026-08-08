@@ -139,3 +139,26 @@ For networking, register a `URLProtocol` subclass on the session configuration s
 
 UI tests use XCTest (via `XCUIApplication`). Swift Testing does not support UI test targets.
 Only unit and integration test targets use `@Test` / `@Suite`.
+
+## Awaiting a state flip — bounded poll, never unbounded spin
+
+When a test must wait for an async state change before asserting, poll with a bound:
+
+```swift
+let work = Task { await model.begin() }
+for _ in 0..<10_000 where !model.isBusy { await Task.yield() }
+#expect(model.isBusy)
+```
+
+- An unbounded `while !flag { await Task.yield() }` hangs the entire suite when the
+  code under test regresses — the flag never flips and nothing times out, so the
+  failure mode is a stuck run instead of a red test.
+- A small fixed yield count (`for _ in 0..<20 { await Task.yield() }`) flakes under
+  parallel-suite MainActor contention — the task may not get a slot before the
+  assertion runs.
+
+The bounded poll stops yielding as soon as the flag flips and fails cleanly when it
+never does. Note that `where` filters iterations rather than breaking the loop: the
+leftover iterations after the flip are synchronous no-ops, which is fine — don't
+"optimize" them into a `break` that costs readability, and don't let the comment claim
+the loop terminates early.

@@ -88,9 +88,9 @@ try await Task.sleep(nanoseconds: 1_500_000_000)
 
 The nanoseconds form is easy to reach for from training data but has no place in modern Swift Concurrency code. The `Duration`-based form is readable, unit-safe, and mockable via the `Clock` protocol.
 
-## Concurrency review lens (pre-PR gate, pass 4)
+## Concurrency review lens (pre-PR review)
 
-The Swift-concrete checklist for the workflow `pr-review-gate.md` concurrency pass. Each
+The Swift-concrete checklist for a dedicated concurrency pass over any branch diff. Each
 item is a bug class that has shipped past general review:
 
 - **Actor reentrancy**: any state read before an `await` and used after it must be

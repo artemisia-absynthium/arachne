@@ -45,6 +45,6 @@ are the cure for a god class, not premature abstraction. When single-responsibil
 ## Design review lens
 
 The comprehensive review checklist (SOLID, Clean Architecture, GRASP, Clean Code,
-coupling laws, guardrails) lives in the `design-review-lens` skill — invoke it for the
-design pass of the PR gate or any standalone design review. This file keeps only what
-must be active while planning and writing code.
+coupling laws, guardrails) is being piloted in a subscriber repo as a review skill and
+returns here once validated. This file keeps only what must be active while planning and
+writing code.
