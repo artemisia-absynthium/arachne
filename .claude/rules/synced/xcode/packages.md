@@ -10,7 +10,12 @@ paths:
 Use Swift Package Manager exclusively. Do not introduce CocoaPods or Carthage.
 
 - Add dependencies via SPM in Xcode or `Package.swift`.
-- Pin dependencies to specific versions or commits — do not track `main` or `master` directly.
+- Use `upToNextMajorVersion` ("Up to Next Major Version") requirements — never track
+  `main`/`master`, and do not use `exactVersion`: the version lock already lives in
+  `Package.resolved`, so an exact requirement duplicates it and forces a project-file
+  edit for every patch release, while the major boundary still fences off breaking
+  changes.
+- `Package.resolved` is the lock file and must be committed — never gitignored.
 - A dependency bump is an explicit choice; it should appear as a deliberate diff in `Package.resolved`.
 
 ## Workspace Package.resolved churn
