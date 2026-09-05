@@ -27,14 +27,8 @@ async/await is the worse fit in that specific case.
 
 ## MainActor discipline
 
-All work that reads or mutates `@Observable` state or touches the UI must run on `@MainActor`.
-If you are on a background context and need to update state, hop explicitly:
-
-```swift
-await MainActor.run { self.isLoading = false }
-// or
-Task { @MainActor in self.isLoading = false }
-```
+All work that reads or mutates `@Observable` state or touches the UI runs on `@MainActor`; from a
+background context, hop explicitly rather than relying on inference.
 
 ## Async closures and capture lists
 
@@ -73,40 +67,7 @@ Prefer in order of fit:
 
 `NotificationCenter` is only acceptable for framework-mandated system broadcasts (`EAAccessory`, `UIApplication`, `UIDevice`, etc.) that have no Swift alternative.
 
-## Task.sleep API
+## Review pass
 
-Use the `Duration`-based overload — never the legacy nanoseconds form:
-
-```swift
-// ✅
-try await Task.sleep(for: .seconds(1.5))
-try await Task.sleep(for: .milliseconds(500))
-
-// ❌ — legacy API, predates Swift 5.7's Clock-based sleep
-try await Task.sleep(nanoseconds: 1_500_000_000)
-```
-
-The nanoseconds form is easy to reach for from training data but has no place in modern Swift Concurrency code. The `Duration`-based form is readable, unit-safe, and mockable via the `Clock` protocol.
-
-## Concurrency review lens (pre-PR review)
-
-The Swift-concrete checklist for a dedicated concurrency pass over any branch diff. Each
-item is a bug class that has shipped past general review:
-
-- **Actor reentrancy**: any state read before an `await` and used after it must be
-  re-validated — the actor processed other work during the suspension. A guard checked
-  before `await` proves nothing after it.
-- **`CheckedContinuation` discipline**: resumed exactly once on every path (including
-  error paths); never leaked (an abandoned continuation suspends its task forever); never
-  assumed cancellation-aware — `Task.cancel()` does NOT resume a checked continuation, the
-  code owning it must resolve it on cancel explicitly.
-- **Terminal-state races**: periodic observation/progress loops must be stopped *before*
-  a terminal state is written, or a late tick clobbers it.
-- **Cancellation propagation**: long async sequences check `Task.checkCancellation()` at
-  the top and between phases; work that must not outlive its owner is not `Task.detached`.
-- **Callback ordering**: delegate callbacks arriving on framework queues that hop to
-  `@MainActor` via `Task` lose ordering guarantees — two hops can land inverted. Any logic
-  that depends on arrival order needs a single serialization point.
-- **`@unchecked Sendable`**: justified only by all-immutable storage or documented internal
-  synchronization (e.g. an owned actor/lock), stated in a comment on the type. Mutable
-  `var` state under `@unchecked Sendable` is a finding, always.
+For a dedicated concurrency review of a diff (reentrancy, continuations, cancellation, ordering,
+`@unchecked Sendable`), invoke the `swift-concurrency-review` skill.

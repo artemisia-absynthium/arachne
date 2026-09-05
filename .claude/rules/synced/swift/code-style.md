@@ -7,7 +7,7 @@ paths:
 
 ## Logging
 
-Never use `print()` in production code. Use `Logger` from `OSLog` everywhere.
+Use `Logger` from `OSLog` everywhere — never `print()` in production code.
 
 Declare all loggers as static properties on a `Logger` extension in a dedicated `Loggers.swift` file, one per subsystem category:
 
@@ -102,21 +102,9 @@ final class MyViewModel {
 }
 ```
 
-## Deletion
+## SwiftLint
 
-When removing code, delete it. Never comment it out.
-
-## SwiftLint — enforced rules
-
-| Rule | Action |
-|------|--------|
-| `force_unwrapping` | Use `guard let` / `if let` — never `!`. Sole exception: `URL(string:)` on a compile-time literal (below) |
-| `implicit_return` | Add explicit `return` where required |
-| `multiline_arguments` | Each argument on its own line when breaking |
-| `multiline_parameters` | Each parameter on its own line when breaking |
-| `function_body_length` | Limit is 50 lines. A violation is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas). |
-
-Run `swiftlint <TargetName>` before submitting any Swift change.
+The project's `.swiftlint.yml` is the authority on enforced rules; run `swiftlint <TargetName>` before submitting any Swift change. One rule needs judgment the linter can't supply: a `function_body_length` violation (50 lines) is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas).
 
 ### Sole force-unwrap exception — `URL(string:)` on a compile-time literal
 

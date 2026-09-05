@@ -1,16 +1,12 @@
 ---
-description: Build errors are always in scope — never defer or skip them, even when they appear unrelated to the current task
+description: A passing build is part of Definition of Done — blockers requiring human action are flagged, never worked around
 paths:
   - "**/*"
 ---
 
 # Build Discipline
 
-## Build errors are always in scope
-
-A passing build is a mandatory verification step and part of the Definition of Done for every task — without it, the claimed change cannot be confirmed to work. This means a build error is in scope regardless of whether it was introduced by the current task.
-
-**Never** defer, skip, or work around a build error because it looks unrelated. Fix it first, in a separate commit if needed, then continue.
+A passing build is a mandatory verification step and part of the Definition of Done for every task — a build error is in scope regardless of whether the current task introduced it. Fix it first, in a separate commit if needed, then continue.
 
 ## When human intervention is required
 

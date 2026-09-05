@@ -6,40 +6,7 @@ paths:
 
 # Swift Testing
 
-This project uses the **Swift Testing** framework. Do not use XCTest patterns.
-
-## Structure
-
-```swift
-import Testing
-
-@Suite("ItemListViewModel")
-struct ItemListViewModelTests {
-
-    @Test("loads item descriptor from JSON")
-    func loadsDescriptor() async throws {
-        let viewModel = ItemListViewModel()
-        let object = try #require(await viewModel.load())
-        #expect(object.property == "expected")
-    }
-}
-```
-
-- `@Suite` groups related tests. No `XCTestCase` subclassing.
-- `@Test` marks individual test functions.
-- Test functions are plain `func`, not prefixed with `test`.
-
-## Assertions
-
-| Assertion | Use |
-|-----------|-----|
-| `#expect(condition)` | Standard assertion — test continues on failure |
-| `#expect(throws: ErrorType.self) { }` | Error assertion |
-| `#require(optional)` | Unwraps optional — aborts test on nil |
-| `#require(throws: ...) { }` | Requires a throw — aborts if none |
-
-Use `#require` for preconditions whose failure makes the rest of the test meaningless.
-Use `#expect` for all other assertions so failures accumulate.
+Unit and integration targets use the **Swift Testing** framework (`@Suite`, `@Test`, `#expect`, `#require`) — no `XCTestCase` subclassing, no XCTest patterns. The one exception: UI test targets stay on XCTest (`XCUIApplication`); Swift Testing does not support them. Use `#require` for preconditions whose failure makes the rest of the test meaningless, `#expect` for everything else so failures accumulate.
 
 ## `#expect(try …)` inside throwing closures
 
@@ -134,11 +101,6 @@ func settingStorePersistsId() {
 ```
 
 For networking, register a `URLProtocol` subclass on the session configuration so the real `URLSession` code path executes with controlled responses — this catches serialisation bugs that protocol mocks silently hide.
-
-## UI tests
-
-UI tests use XCTest (via `XCUIApplication`). Swift Testing does not support UI test targets.
-Only unit and integration test targets use `@Test` / `@Suite`.
 
 ## Awaiting a state flip — bounded poll, never unbounded spin
 

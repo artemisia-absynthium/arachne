@@ -1,6 +1,10 @@
+---
+name: lift-to-shared-rules
+description: Persist a generalizable coding pattern, constraint, or convention into the shared rules repo — pick the category, write and anonymize the rule, check coherence against every existing rule, show the diff with a filled-in acceptance checklist, commit locally, then stop — the push (owner) or PR (contributor) happens only on a separate explicit go. Invoke whenever a pattern emerges that should apply across all projects, not just the current one.
+---
 # lift-to-shared-rules
 
-Persist a generalizable coding pattern into the shared rules repo, verify coherence across all existing rules, show the diff with a filled-in acceptance checklist, and propose a commit+push (owner) or fork+PR (contributor).
+Persist a generalizable coding pattern into the shared rules repo, verify coherence across all existing rules, show the diff with a filled-in acceptance checklist, commit locally on confirmation, and push (owner) or open the PR (contributor) only on a separate explicit go — the repo is public, so nothing leaves the machine without the user's word.
 
 Invoke this skill whenever a pattern, constraint, or convention emerges that should apply across all projects, not just the current one.
 
@@ -111,13 +115,20 @@ Before any commit or PR is opened, present all of the following and wait for exp
 
 If any item is ❌, surface it explicitly and ask the user how to proceed. Do not silently skip or auto-resolve.
 
-## Step 7a — Owner: commit and push
+## Step 7a — Owner: commit, then stop before pushing
 
-On confirmation:
+On confirmation, commit locally:
 
 ```bash
 git -C "$CLAUDE_SETUP_PATH" add -A
 git -C "$CLAUDE_SETUP_PATH" commit -m "<message>"
+```
+
+Then STOP and report: "committed locally — say the word and I'll push." The push runs only on
+an explicit instruction ("push", "ship it"), never as a continuation of the Step 6 confirmation:
+the repo is public, and the anonymization review is the last chance before publication.
+
+```bash
 git -C "$CLAUDE_SETUP_PATH" push
 ```
 
@@ -154,14 +165,18 @@ On confirmation:
 
 5. **Apply the changes** — write or edit the rule file(s) in `$WORK_DIR` as determined in Steps 1–2. If README.md or CLAUDE.md updates were planned (new category), apply those too.
 
-6. **Commit and push the branch**:
+6. **Commit the branch, then stop**:
    ```bash
    git -C "$WORK_DIR" add -A
    git -C "$WORK_DIR" commit -m "<message>"
+   ```
+   Report "committed locally — say the word and I'll push and open the PR." Continue only on
+   an explicit instruction.
+
+7. **Push and open the PR**, filling in the template from Step 6:
+   ```bash
    git -C "$WORK_DIR" push origin "$BRANCH"
    ```
-
-7. **Open the PR**, filling in the template from Step 6:
    ```bash
    gh pr create \
      --repo artemisia-absynthium/ai-guidelines-sync \
