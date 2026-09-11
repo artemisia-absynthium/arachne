@@ -1,6 +1,5 @@
 ---
-paths:
-  - "**/*"   # tooling discipline applies to every session, whatever files it touches
+description: Unavailable ≠ broken — an erroring tool is diagnosed, never silently bypassed
 ---
 
 # Tool Fallback Discipline — Unavailable ≠ Broken

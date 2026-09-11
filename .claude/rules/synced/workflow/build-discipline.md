@@ -1,12 +1,10 @@
 ---
 description: A passing build is part of Definition of Done — blockers requiring human action are flagged, never worked around
-paths:
-  - "**/*"
 ---
 
 # Build Discipline
 
-A passing build is a mandatory verification step and part of the Definition of Done for every task — a build error is in scope regardless of whether the current task introduced it. Fix it first, in a separate commit if needed, then continue.
+A passing build is a mandatory verification step and part of the Definition of Done for every task — a build error is in scope regardless of whether the current task introduced it. It is *fixed* in the sense of `terminology.md`: cause named from an authoritative source, remedy the prescribed one, effect verified — in its own commit when separable. A change that makes the error stop appearing without a named cause is a workaround: proposed, not applied. "Cannot be fixed correctly" is reported as a blocker, never worked around.
 
 ## When human intervention is required
 

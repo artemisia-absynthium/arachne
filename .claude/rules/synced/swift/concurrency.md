@@ -17,13 +17,32 @@ final class MyViewModel {
 }
 ```
 
-Never use `ObservableObject` / `@Published`. Never use Combine or completion-handler callbacks for
-state management or concurrency — use `@Observable` and async/await instead.
+## Pick the primitive by the job, not by its age
 
-Combine is acceptable where it genuinely fits and async/await would be more verbose: reactive KVO
-observation (e.g. `UserDefaults.publisher(for:)`), multi-publisher merging, or bridging legacy
-delegate patterns into a stream. If you reach for Combine, add a one-line comment explaining why
-async/await is the worse fit in that specific case.
+The rule is against **superseded** shapes — an older primitive used where the modern one gives the
+same guarantees — not against every older API. By job:
+
+- **An async result** (a load, a request, a one-shot answer) → `async/await`. Completion handlers,
+  `Result` callbacks and `DispatchQueue.async` hops for these are superseded; they survive only at
+  a framework boundary with no async form, bridged once with a continuation.
+- **State a view renders** → `@Observable @MainActor`. `ObservableObject` / `@Published` are
+  superseded entirely.
+- **A synchronous notification of a transition** — "run this in the same turn the phase changed,
+  before anything else on the actor" — is neither state management nor async work. A plain closure
+  or a returned value is the right seam. Observation is an invalidation signal (willSet semantics,
+  once per registration, coalesced) and `Observations {}` delivers asynchronously; neither can
+  promise same-turn ordering. Say in one line why the timing matters.
+- **Values over time** → `AsyncSequence` / `AsyncStream`. Combine stays where it is the better fit
+  — reactive KVO (`publisher(for:)`), multi-publisher merging, bridging a delegate into a stream —
+  with a one-line comment on why.
+- **Framework-mandated delegates and callbacks** (`URLSession`, ARKit, system broadcasts) are
+  neither superseded nor optional; forward `Sendable` values out of them into your own primitive,
+  on the queue the framework gives you.
+
+The test: could this be written with the modern primitive *without losing a guarantee* —
+ordering, same-turn timing, back-pressure, a framework contract? If yes, the older shape is
+superseded here. If a guarantee would be lost, the older shape is the right tool: name the
+guarantee in a comment where the rule would otherwise read as violated.
 
 ## MainActor discipline
 

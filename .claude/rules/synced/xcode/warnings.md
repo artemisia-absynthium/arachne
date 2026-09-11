@@ -10,7 +10,7 @@ paths:
 
 The project must compile with **zero warnings** at all times — no exceptions.
 
-- **Before starting any task**: check for existing warnings. If any are present, fix them first in a separate, independent commit before touching the requested work — even if the user did not ask.
+- **Before starting any task**: check for existing warnings and report them. Fix them — in the sense of `workflow/terminology.md`: cause named, remedy prescribed, effect verified — in a separate, independent commit before touching the requested work.
 - **Never commit code that introduces new warnings.** A warning-free build is a pre-condition for every commit, not a post-task cleanup step.
 - **After Xcode upgrades**: new toolchain warnings are treated as bugs. Fix them before any other work and land them in their own commit so the cleanup is isolated from feature changes.
 

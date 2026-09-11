@@ -1,7 +1,5 @@
 ---
 description: On a shared branch (main/develop), fetch + fast-forward before the first edit when the last fetch is older than an hour — never on solo feature branches, never on every commit; before any rebase, fetch the base and rebase onto its remote-tracking ref
-paths:
-  - "**/*"
 ---
 
 # Pull First — on shared branches when stale, and before every rebase

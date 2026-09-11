@@ -1,18 +1,23 @@
 ---
-description: Planning and execution discipline for non-trivial, multi-step work
-paths:
-  - "**/*"
+description: Plans are durable artifacts in two tiers — task plans machine-local and uncommitted, project plans in the repo and committed with the code; divergence re-plans, contracts precede approval
 ---
 
 # Planning & Execution Discipline
 
-## Plans are durable artifacts, not conversation state
+## Plans are durable artifacts, in two tiers
 
-A plan for any multi-step task must live in a durable file (e.g. `~/.claude/plans/<name>.md`), not solely in the conversation. Long conversations are summarized on context compaction, and a plan held only in chat history is the first thing lost. Re-read the plan file at the start of each work session; update it in place as decisions land.
+A plan never lives only in the conversation: long conversations are summarized on context compaction, and a plan held only in chat history is the first thing lost. Which durable home a plan gets depends on its lifetime (*task plan* and *project plan* are defined in `terminology.md`), and the test is who reads it next.
+
+- **Task plan** — one task, one session, one branch. Lives in a machine-local file (e.g. `~/.claude/plans/<name>.md`): durable across compaction, re-read at the start of each work session on that task, updated in place as decisions land, discarded when the task closes. Its only residue is the commit and the project plan's status update. It is never committed to the repo. The charter (`charter.md`) is task-tier by the same test and shares this lifecycle.
+- **Project plan** — what the *next session* must read to plan the next step: the roadmap with a `## Now` pointer to the next work item and its gate, the dated decision log, the design and its invariants. Lives in the repo (e.g. `docs/ROADMAP.md`, `docs/DESIGN.md`), is updated **in the same commit** as the code that changes it (a staleness trigger in `docs-sync.md`), and is never machine-local — a plan only one machine can read does not survive a new session, a new machine, or a new collaborator.
+
+**The test:** if the next session needs the file, it is project-tier; if it only needs the outcome, it is task-tier. A decision made inside a task plan that outlives the task migrates to the decision log at task close; the task plan itself does not. The charter's `Now:` is the current step *within* the task; the roadmap's `## Now` is the next work item *across* sessions.
+
+Rationale: a project-scale plan kept in the machine-local task location serves the session that writes it and leaves nothing a fresh session can resume from; the gap surfaces only when a later session is asked to "plan the next step" and finds no repo artifact naming it. Tiering by lifetime makes the location follow the plan's reach instead of the habit of the session that wrote it.
 
 ## Divergence is a re-plan trigger
 
-When execution diverges from the approved plan — an assumption breaks, the real system differs from the spec, a step surfaces unknowns — STOP and update the plan before continuing. Off-plan fixes must never silently accumulate; one divergence is a re-planning checkpoint, not a patch. A trail of reactive "fix X" commits with no plan update is the signature of this rule being violated.
+Any unplanned event (see `terminology.md`) is a divergence. The next output is a diagnosis and a *proposed* change, never the change itself. The change must be **path-independent**: plan and code end up as they would have been designed had the requirement been known from the start — the simplest structure that satisfies everything now known, with the change placed where the design says it belongs, not where it is cheapest to bolt on. If the plan absorbs it that way, amend it in place; if not, remake the plan with the change designed in. The task plan is what a divergence amends; when the divergence changes a decision, a gate, or the next work item, the project plan (roadmap `## Now`, decision log, design) changes in the same commit as the code. A patch a reader could identify as "added later" — extra branches where a model should have changed, a step bolted beside the one it contradicts — is a Frankenstein, and every later step inherits the seam. Off-plan fixes must never silently accumulate; a trail of reactive "fix X" commits with no plan update is the signature of this rule being violated.
 
 ## Specify wire contracts before approving the plan
 
@@ -24,4 +29,4 @@ Exercise the real end-to-end round-trip on the first vertical slice, not after a
 
 ## Re-ground after a model switch
 
-On a model switch mid-task, re-read the plan and the diff-so-far and reconcile before writing new code. The previous model's implicit context does not transfer; only the durable plan does — which is the other reason the plan must be a file, and must carry every contract the next model needs.
+On a model switch mid-task, re-read the plan and the diff-so-far and reconcile before writing new code. The previous model's implicit context does not transfer; only the durable task plan does — which is the other reason the plan must be a file, and must carry every contract the next model needs.

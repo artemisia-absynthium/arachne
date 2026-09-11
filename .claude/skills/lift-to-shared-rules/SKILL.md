@@ -40,18 +40,35 @@ In owner mode, `<repo>` is `$CLAUDE_SETUP_PATH`. In contributor mode, `<repo>` i
 
 ## Step 2 — Write the change
 
-Edit or create the target file. Rule files use this frontmatter format:
+Edit or create the target file. The frontmatter depends on the category:
 
-```markdown
----
-paths:
-  - "**/*.swift"   # adjust to the file types this rule applies to
----
+- **Stack categories** (`swift`, `ios`, `visionos`, `xcode`, `mac`, `android`, `web`, `database`, …) are
+  path-scoped so the rule loads only next to the files it governs:
 
-# Rule Title
+  ```markdown
+  ---
+  paths:
+    - "**/*.swift"   # adjust to the file types this rule applies to
+  ---
 
-<content>
-```
+  # Rule Title
+
+  <content>
+  ```
+
+- **`workflow/`** rules are process rules that apply to every file, and they must stay
+  **unscoped**: only an unscoped rule is re-injected from disk after context compaction
+  (see `rules/workflow/charter.md`). They carry a one-line `description:` and **no `paths:`**:
+
+  ```markdown
+  ---
+  description: <one line — the rule's punchline, not its topic>
+  ---
+
+  # Rule Title
+
+  <content>
+  ```
 
 Write the rule in the same style as existing files in the repo: direct, imperative, code examples where they clarify rather than pad.
 
@@ -105,7 +122,7 @@ Before any commit or PR is opened, present all of the following and wait for exp
 - No merge opportunity identified (or: content merged into an existing file instead)
 
 *Author checklist* (evaluated and attested by Claude):
-- Frontmatter has a `paths:` key scoped to the category's file types
+- Frontmatter matches the category: `paths:` scoped to the category's file types for stack categories; a one-line `description:` and no `paths:` for `workflow/` (must stay unscoped to survive compaction)
 - Anonymization applied (Step 3) — no domain-specific names, paths, or identifiers remain
 - Not a restatement of Apple/framework documentation — captures a non-obvious constraint, gotcha, or decision
 - Non-obvious constraints include a short rationale (the *why*, not just the *what*)
@@ -195,7 +212,7 @@ On confirmation:
 
    ## Author checklist
 
-   - [x] Frontmatter complete
+   - [x] Frontmatter matches the category (`paths:` for stack categories; `description:` only for `workflow/`)
    - [x] Anonymized — no domain-specific names, paths, or identifiers
    - [x] Captures non-obvious constraint/gotcha
    - [x] Rationale included

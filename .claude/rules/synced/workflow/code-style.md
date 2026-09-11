@@ -1,7 +1,5 @@
 ---
 description: Cross-language code style — pre-existing violations are annotated as TECH-DEBT, never mirrored
-paths:
-  - "**/*"
 ---
 
 # Code Style

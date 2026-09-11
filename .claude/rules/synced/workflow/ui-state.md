@@ -1,12 +1,5 @@
 ---
 description: Empty and error states are implemented before the happy path — a screen is not shippable without them
-paths:
-  - "**/*.swift"
-  - "**/*.tsx"
-  - "**/*.vue"
-  - "**/*.kt"
-  - "**/*.xml"
-  - "**/*.html"
 ---
 
 # UI State Coverage
