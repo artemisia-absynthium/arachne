@@ -26,3 +26,9 @@ be diffed against the change whenever the diff touches:
 
 "Unaffected" is only valid with the reason stated. Never omit the line; never answer it
 from memory — open the doc and check.
+
+## Currency is not specificity
+
+The mandatory line and the mechanical triggers guarantee the doc is *touched*; they say
+nothing about what belongs in it, and a doc revisited on every public change drifts toward
+implementation detail. What belongs, and what does not, is `docs-record-decisions.md`.

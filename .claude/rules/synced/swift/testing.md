@@ -62,6 +62,14 @@ struct StoreKitTests {
 }
 ```
 
+`.serialized` orders the tests **inside the suite it annotates** (recursively into nested
+suites). It does not order that suite relative to any other — two suites sharing a
+process-global fixture still race each other. Namespace the fixture per test (remedy 1), or
+put both suites under one serialized parent. A header comment claiming `.serialized` protects
+a file from a sibling suite is false, and it misleads the next author into adding the `async`
+test that opens the race (`workflow/assertions-must-be-falsifiable.md`, framework behaviour is
+a fact).
+
 Clean up with `defer` immediately after acquiring the fixture — `#expect` records and
 continues on failure, so cleanup at the end of the happy path leaks state into the next
 test exactly when something already went wrong.

@@ -101,9 +101,10 @@ from the property it must maintain. Only process forces derivation.
   is proposed only after the property it serves is written; if the property can't be
   written, the requirement isn't understood yet.
 - Every invariant of the form "X stays consistent with Y" names its ENFORCEMENT POINT: the
-  code location where Y changes. Unnameable ⇒ the invariant is unowned ⇒ the plan is not
-  approvable. Reactive enforcement (checked where the value is consumed) requires explicit
-  justification of the window between the change and the check.
+  function or type where Y changes, named by role and symbol (`docs-record-decisions.md`).
+  Unnameable ⇒ the invariant is unowned ⇒ the plan is not approvable. Reactive enforcement
+  (checked where the value is consumed) requires explicit justification of the window between
+  the change and the check.
 - Epistemic typing: two values of the same language type carrying different trust —
   measured truth, estimate, derived-for-display — get DISTINCT NAMES at plan time. Every
   comparison, `max()`, or assignment that mixes kinds states which kinds it mixes.
@@ -123,7 +124,8 @@ from the property it must maintain. Only process forces derivation.
   and cover its edges.
 - Every fixture value is load-bearing: a fixture that satisfies assertions vacuously (a
   zero that short-circuits the arithmetic, two values equal by accident) is a lying test.
-  State why each magic value sits where it does relative to the property's boundary.
+  State why each magic value sits where it does relative to the property's boundary. The
+  write-time rule is `assertions-must-be-falsifiable.md`.
 
 **One authority per invariant.** Every invariant has exactly ONE authoritative statement —
 the branch's design note while work is in flight, or the subsystem contract table once it

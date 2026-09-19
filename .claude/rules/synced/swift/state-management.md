@@ -1,9 +1,6 @@
 ---
 paths:
-  - "**/*ViewModel*.swift"
-  - "**/*Model*.swift"
-  - "**/*Repository*.swift"
-  - "**/*State*.swift"
+  - "**/*.swift"
 ---
 
 # Swift Async State Management

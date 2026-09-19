@@ -1,9 +1,5 @@
 ---
-paths:
-  - "**/*.xcodeproj/**"
-  - "**/*.sh"
-  - "**/*.yml"
-  - "**/*.yaml"
+description: Run every platform the target supports, resolve each destination from the machine instead of hardcoding a device or an OS, and read the run's terminal verdict without truncating the stream
 ---
 
 # Test Destinations and Platform Coverage

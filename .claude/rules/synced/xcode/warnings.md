@@ -1,7 +1,5 @@
 ---
-paths:
-  - "**/*.swift"
-  - "**/*.xcodeproj/**"
+description: Zero warnings at all times — existing ones are checked and fixed in their own commit before the requested work starts, and a suppression carries the reason the fix would be worse
 ---
 
 # Warning Discipline

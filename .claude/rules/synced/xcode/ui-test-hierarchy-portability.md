@@ -1,7 +1,6 @@
 ---
 paths:
   - "**/*UITests*/**"
-  - "**/*.swift"
 ---
 
 # UI-Test Hierarchy Portability — One Suite, Every Platform's Tree

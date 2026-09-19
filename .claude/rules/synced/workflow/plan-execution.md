@@ -23,6 +23,8 @@ Any unplanned event (see `terminology.md`) is a divergence. The next output is a
 
 A plan that produces a wire artifact — file format, archive/zip layout, on-disk or remote naming, serialization, encoding — is not approvable until that contract is specified exactly. "Authored as part of this work" is not a spec: every unspecified byte or name becomes a bug the moment the artifact is generated, uploaded, fetched, and parsed end-to-end.
 
+"Exactly" applies to the artifact — every byte and name decided. It does not extend to the code that produces it: a plan or contract never pins implementation locations, and how an enforcement point is named is `docs-record-decisions.md`.
+
 ## Integration-test the first vertical slice
 
 Exercise the real end-to-end round-trip on the first vertical slice, not after all sections are built. A green unit-test suite is not integration evidence — it proves the pieces, not the seams. The seams (naming, formats, transport) are where deferred contracts fail.

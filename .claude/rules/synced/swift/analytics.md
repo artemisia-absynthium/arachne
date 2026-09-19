@@ -1,7 +1,6 @@
 ---
 paths:
-  - "**/*View*.swift"
-  - "**/*Screen*.swift"
+  - "**/*.swift"
 ---
 
 # Firebase Analytics — Screen View Tracking

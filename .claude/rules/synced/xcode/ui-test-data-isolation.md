@@ -1,7 +1,6 @@
 ---
 paths:
   - "**/*UITests*/**"
-  - "**/*.swift"
 ---
 
 # UI-Test Data Isolation — Redirect, Never Mutate In Place

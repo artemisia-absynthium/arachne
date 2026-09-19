@@ -15,47 +15,44 @@ nothing because the starved session never accumulates features.
 Own the session in one place — one object creates it, runs it, pauses it — and make every
 AR surface depend on that object. Nothing else creates an `ARSession`.
 
-## RealityKit binds to your session; it does not run it
+## The host that keeps one session: `ARView` with manual configuration
 
-With a SwiftUI `RealityView` in AR mode (iOS 18+ / iPadOS 18+), the app can keep ownership of the ARKit session:
+`ARView(frame:cameraMode:automaticallyConfigureSession:)` with `automaticallyConfigureSession:
+false` renders the passthrough from exactly the session you configure and run — `arView.session`
+*is* the app's session, so there is nothing to bind and no second session can appear:
 
 ```swift
-let spatial = SpatialTrackingSession()
+let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
 let configuration = ARWorldTrackingConfiguration()
 // … frame semantics, environment texturing …
-await spatial.run(
-    SpatialTrackingSession.Configuration(tracking: [.camera, .world], camera: .back),
-    session: arSession,
-    arConfiguration: configuration
-)
-arSession.run(configuration)   // RealityKit only bound to it — you run it ("you manage and run the ARKit session")
+arView.session.delegate = self
+arView.session.run(configuration)
+// RealityKit content goes under an anchor in arView.scene; SwiftUI hosts the view through
+// UIViewRepresentable.
 ```
 
-Two ordering rules follow, and both were learned from a device, not a build:
+Own the `ARView` in the object that owns the session; every other surface reads
+`arView.session`, none creates or runs one.
 
-- **Call `arSession.run(_:)` yourself.** After `run(_:session:arConfiguration:)` alone the session
-  is bound but idle: no delegate callbacks, tracking never leaves `initializing`, and
-  `currentFrame` is `nil` — every raycast fails.
-- **Bind before the view appears.** A `RealityView` whose content camera is `.spatialTracking`
-  starts RealityKit's *default* tracking session the moment it appears if no
-  `SpatialTrackingSession` is running yet. Calling `run(_:session:arConfiguration:)` afterwards
-  returns `unavailableCapabilities` containing `.world` and `.camera`, RealityKit stays on its own
-  session, and you are back to two sessions. Gate the view on a flag that flips only after the
-  bind-and-run completes:
+## `RealityView` + `SpatialTrackingSession.run(_:session:arConfiguration:)`: verify on a device first
 
-```swift
-@Observable @MainActor final class ARScreenModel {
-    private(set) var isSessionBound = false
-    func start() async {
-        await tracking.start()        // spatial.run(…, session:, arConfiguration:) + arSession.run
-        isSessionBound = true         // only now may a RealityView with .spatialTracking appear
-    }
-}
-```
+Apple documents that a SwiftUI `RealityView` in AR mode (iOS 18+) can *bind* to an app-owned
+session through `SpatialTrackingSession.run(_:session:arConfiguration:)` ("you manage and run the
+ARKit session"), after which you call `arSession.run(_:)` yourself. On an iOS 26 device this path
+**did not bind under any ordering** — view gated on a bind-completed flag, run then bind, bind
+then run: the call returned `unavailableCapabilities` containing `.world` and `.camera`,
+`RealityView` started RealityKit's own default tracking session alongside the app's, and the
+two-session symptoms above followed (camera contention as a `FigCapture` capture error, a
+permanent interruption over a working passthrough, frames piling up in the delegate, no raycast
+hits). Treat the binding path as unverified on any OS you have not tried it on; when it fails, it
+fails as two sessions, not as an error you can catch.
 
-`run(_:session:arConfiguration:)` is declared only in the device SDK's RealityKit interface,
-not the Simulator's; wrap the call in `#if !targetEnvironment(simulator)` (the Simulator cannot
-run ARKit anyway).
+If you do try it: `run(_:session:arConfiguration:)` is declared only in the device SDK's
+RealityKit interface, not the Simulator's, so wrap the call in `#if !targetEnvironment(simulator)`;
+a `RealityView` whose content camera is `.spatialTracking` must not appear before the bind
+completes, or it starts the default session first; and you must still call `arSession.run(_:)`
+yourself — bound but not run means no delegate callbacks, tracking stuck in `initializing`, and
+`currentFrame == nil`.
 
 ## Keep the `ARSession` delegate off the main queue
 

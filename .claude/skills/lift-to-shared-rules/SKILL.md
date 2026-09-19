@@ -40,10 +40,16 @@ In owner mode, `<repo>` is `$CLAUDE_SETUP_PATH`. In contributor mode, `<repo>` i
 
 ## Step 2 — Write the change
 
-Edit or create the target file. The frontmatter depends on the category:
+Edit or create the target file. The category decides the *directory*; what the rule **governs**
+decides the frontmatter. A rule governing a **file type** is path-scoped, so it loads next to the
+files it governs. A rule governing an **action** — running a build or a test suite, choosing a
+destination, reading a verdict, a step taken before any file is opened — is unscoped whatever its
+category, because a scope keyed on files is not in context when the action is taken, and only an
+unscoped rule is re-injected after compaction. Scoping such a rule to `"**/*"` is the worst of both:
+it matches everything *and* disappears at the next compaction.
 
-- **Stack categories** (`swift`, `ios`, `visionos`, `xcode`, `mac`, `android`, `web`, `database`, …) are
-  path-scoped so the rule loads only next to the files it governs:
+- **Stack categories** (`swift`, `ios`, `visionos`, `xcode`, `mac`, `android`, `web`, `database`, …)
+  governing a file type are path-scoped so the rule loads only next to the files it governs:
 
   ```markdown
   ---
@@ -56,9 +62,12 @@ Edit or create the target file. The frontmatter depends on the category:
   <content>
   ```
 
-- **`workflow/`** rules are process rules that apply to every file, and they must stay
+- **`workflow/` rules, and any stack rule that governs an action rather than a file type**, stay
   **unscoped**: only an unscoped rule is re-injected from disk after context compaction
-  (see `rules/workflow/charter.md`). They carry a one-line `description:` and **no `paths:`**:
+  (see `rules/workflow/charter.md`). They carry a one-line `description:` and **no `paths:`**.
+  An action rule keeps its stack category — the category is the subject matter, and `workflow/`
+  is synced to every subscriber, so moving it there would push stack-specific guidance to
+  projects that have no use for it:
 
   ```markdown
   ---
@@ -122,7 +131,7 @@ Before any commit or PR is opened, present all of the following and wait for exp
 - No merge opportunity identified (or: content merged into an existing file instead)
 
 *Author checklist* (evaluated and attested by Claude):
-- Frontmatter matches the category: `paths:` scoped to the category's file types for stack categories; a one-line `description:` and no `paths:` for `workflow/` (must stay unscoped to survive compaction)
+- Frontmatter matches what the rule governs: `paths:` scoped to the file types a file-type rule governs; a one-line `description:` and no `paths:` for `workflow/` and for any rule governing an action (must stay unscoped to be in context when the action is taken and to survive compaction). Never `paths: ["**/*"]`
 - Anonymization applied (Step 3) — no domain-specific names, paths, or identifiers remain
 - Not a restatement of Apple/framework documentation — captures a non-obvious constraint, gotcha, or decision
 - Non-obvious constraints include a short rationale (the *why*, not just the *what*)
@@ -212,7 +221,7 @@ On confirmation:
 
    ## Author checklist
 
-   - [x] Frontmatter matches the category (`paths:` for stack categories; `description:` only for `workflow/`)
+   - [x] Frontmatter matches what the rule governs (`paths:` for a file-type rule; `description:` only for a process or action rule)
    - [x] Anonymized — no domain-specific names, paths, or identifiers
    - [x] Captures non-obvious constraint/gotcha
    - [x] Rationale included
