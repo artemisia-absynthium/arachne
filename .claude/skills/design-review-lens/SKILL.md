@@ -10,6 +10,14 @@ diff, not a definition. Type-level thresholds that count as automatic findings: 
 exceeding ~300 lines or ~15 stored properties, holding state with two different
 lifetimes, or gaining a responsibility its name doesn't cover.
 
+**Applied, not invoked.** Each principle below, applied honestly, tends to *remove*
+something: SRP removes a responsibility, DRY removes a copy, Information Expert moves a
+decision to its data and deletes the plumbing that compensated for its absence. When every
+principle cited in a plan or a review justifies an *addition* — "DRY" for sharing a type
+that then needs labels to tell its users apart, "cohesion" for moving a mechanism nobody
+asked for into a shared place — the principles are being used as vocabulary. The test for
+any finding that recommends adding: what does the addition let you delete?
+
 **SOLID (Robert C. Martin, "Uncle Bob")**
 
 - **SRP** — one reason to change, one actor per type; the thresholds above apply.

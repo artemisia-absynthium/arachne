@@ -48,5 +48,5 @@ in place.
 ## Run the negative control before you call it done
 
 Having written the test, revert the fix (or apply the mutation you named), run, and see red.
-This is the author's check, done at write time — the PR description then states which
-assertion failed, so a reviewer reads that line instead of trusting the green run.
+This is the author's check, done at write time: a green run proves the test passes, not that
+it can fail.

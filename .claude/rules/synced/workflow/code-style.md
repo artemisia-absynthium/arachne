@@ -16,3 +16,11 @@ Pre-existing violations get annotated with a `TECH-DEBT` comment so they can be 
 ```
 
 Debt acknowledged, not compounded.
+
+## Scope: style, not design
+
+This rule governs *style and convention* — naming, formatting, logging, file layout. It
+does not make existing *design* a baseline to preserve. Reluctance to touch what is not
+in the way is good practice; treating an existing structure as a requirement because it
+exists is not. When keeping a structure starts costing a mechanism, the structure has to
+justify itself, and that judgment is `planning-discipline`, question 2.
