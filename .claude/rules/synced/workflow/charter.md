@@ -24,8 +24,9 @@ dies with the task plan, never in the repo's project plan.
 - **Updated** at every divergence, in the same pause that produces the diagnosis
   (see `plan-execution.md`).
 - **Re-read** before every commit, and copied into every brief handed to a subagent.
-- **Checked** at task close: every "must stay true" line answered with evidence, never
-  asserted. *Done* means the charter is satisfied (see `terminology.md`). A check that comes
+- **Checked** at task close, after the review pass (`review-before-close.md`): every "must
+  stay true" line answered with evidence, never asserted. *Done* means the charter is satisfied
+  (see `terminology.md`). A check that comes
   out complete for a design later found wrong is not a failure of the check — it means the
   lines measured properties of the result, not whether the result should exist. That is
   decided before the charter is written, by the four questions in `planning-discipline`.

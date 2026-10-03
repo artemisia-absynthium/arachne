@@ -1,16 +1,16 @@
 ---
-description: Zero warnings at all times — existing ones are checked and fixed in their own commit before the requested work starts, and a suppression carries the reason the fix would be worse
+description: No commit introduces a warning — pre-existing ones are checked and fixed in their own commit before the requested work starts, as priced side-work, and a suppression carries the reason the fix would be worse
 ---
 
 # Warning Discipline
 
 ## Zero-warnings policy
 
-The project must compile with **zero warnings** at all times — no exceptions.
+The project compiles with **zero warnings**: no commit introduces one, and pre-existing ones are removed in changes of their own.
 
-- **Before starting any task**: check for existing warnings and report them. Fix them — in the sense of `workflow/terminology.md`: cause named, remedy prescribed, effect verified — in a separate, independent commit before touching the requested work.
-- **Never commit code that introduces new warnings.** A warning-free build is a pre-condition for every commit, not a post-task cleanup step.
-- **After Xcode upgrades**: new toolchain warnings are treated as bugs. Fix them before any other work and land them in their own commit so the cleanup is isolated from feature changes.
+- **Before starting any task**: check for existing warnings and report them. Fix them — in the sense of `workflow/terminology.md`: cause named, remedy prescribed, effect verified — in a separate, independent commit before touching the requested work. That fix is side-work in the sense of `workflow/side-work.md`: priced when admitted, and left to a dedicated change when the price is exceeded.
+- **Never commit code that introduces new warnings.** A commit that adds none is the pre-condition for every commit, not a post-task cleanup step.
+- **After Xcode upgrades**: new toolchain warnings are treated as bugs. Fix them before any other work and land them in their own commit so the cleanup is isolated from feature changes — the same side-work, with the same price.
 
 ## SwiftLint suppression policy
 

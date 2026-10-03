@@ -1,6 +1,6 @@
 ---
 name: design-review-lens
-description: The full design-review checklist (SOLID, Clean Architecture boundaries, GRASP, Clean Code hygiene, coupling laws, anti-over-engineering guardrails) for reviewing a diff or branch. Invoke for the design pass of the pr-review-gate, or whenever performing a design, SOLID, or architecture review of code changes.
+description: The full design-review checklist (SOLID, Clean Architecture boundaries, GRASP, Clean Code hygiene, coupling laws, anti-over-engineering guardrails) for reviewing a diff or branch. Invoke for the design pass of the review before close (`rules/workflow/review-before-close.md`), or whenever performing a design, SOLID, or architecture review of code changes.
 ---
 
 # Design Review Lens
