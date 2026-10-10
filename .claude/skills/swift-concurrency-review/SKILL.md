@@ -7,7 +7,9 @@ description: Dedicated Swift concurrency review pass over a diff or branch — a
 
 The Swift-concrete checklist for a dedicated concurrency pass over a branch diff. Each item
 is a bug class that has shipped past general review; the general design pass
-(`design-review-lens`) does not cover them.
+(`design-review-lens`) does not cover them. The same items apply to a design note before code
+exists — which state each actor owns, what is re-validated after each suspension, who resolves
+each continuation — per `workflow/review-lenses.md`.
 
 - **Actor reentrancy**: any state read before an `await` and used after it must be
   re-validated — the actor processed other work during the suspension. A guard checked

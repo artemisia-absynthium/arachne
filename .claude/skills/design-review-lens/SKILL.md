@@ -5,8 +5,10 @@ description: The full design-review checklist (SOLID, Clean Architecture boundar
 
 # Design Review Lens
 
-The comprehensive checklist for a design review pass. Every item is a question about the
-diff, not a definition. Type-level thresholds that count as automatic findings: a type
+The comprehensive checklist for a design review pass, over a diff or over a design note before
+code exists (`workflow/review-lenses.md`). Every item is a question about the work, not a
+definition, and a finding names the principle and the consequence a caller or reader pays for it;
+sound work yields none, and that is the expected result. Type-level thresholds that count as automatic findings: a type
 exceeding ~300 lines or ~15 stored properties, holding state with two different
 lifetimes, or gaining a responsibility its name doesn't cover.
 

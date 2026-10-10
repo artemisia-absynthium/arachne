@@ -20,8 +20,16 @@ xcrun xcresulttool get test-results summary --path <run>.xcresult \
 
 (The `.xcresult` path is printed near the end of every `xcodebuild test` log.)
 
+Still reproducible on Xcode 27: a `-only-testing:` identifier that matches no test — a Swift
+Testing function named without its `()` — ends in `** TEST SUCCEEDED **`, exit 0, and an xcresult
+whose only node is the test plan, with no test case under it.
+
 Compare `totalTestCount` against the suite's known baseline: a shrunken count is a
 silent non-execution, which no exit code reports.
+
+That comparison is the count's only use: it answers whether the tests ran. The figure is read by
+the check and goes nowhere else — not into a PR body, a commit message, a review or a document
+(`workflow/docs-record-decisions.md`).
 
 ## Two tools, two counts — a baseline names its source
 

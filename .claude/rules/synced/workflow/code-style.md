@@ -17,6 +17,15 @@ Pre-existing violations get annotated with a `TECH-DEBT` comment so they can be 
 
 Debt acknowledged, not compounded.
 
+## Conventions adopted after the code — fix on touch, never sweep
+
+A convention adopted after code exists leaves files carrying the old one. Those files are
+fixed when a task touches them — the import order, the file header, whatever the convention
+names — and never in a sweep: a sweep is diff noise that hides the change under review and
+risks regressions for no behaviour. Which conventions a project adopted this way, and what
+the old form looks like, is the project's own instruction file; the rule above keeps covering
+every file a task does not touch.
+
 ## Scope: style, not design
 
 This rule governs *style and convention* — naming, formatting, logging, file layout. It

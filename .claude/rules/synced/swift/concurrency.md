@@ -60,7 +60,28 @@ Task { @MainActor [weak self] in
 }
 ```
 
-Back-navigation and completion callbacks follow the same pattern.
+### A stored callback that starts a `Task`: the capture list goes on the outer closure
+
+When the `Task` is created inside an escaping closure that something stores — a back-navigation
+action, a completion handler — `[weak self]` belongs on that outer closure. On the inner `Task` it
+protects nothing: to form the weak copy, the outer closure has to capture `self` strongly, and it
+holds that reference for as long as it is stored. The compiler reports it: *"'weak' ownership of
+capture 'self' differs from implicitly-captured strong reference in outer scope"*.
+
+```swift
+// ❌ the stored closure captures self strongly to hand it to the Task
+child = ChildState(onBack: {
+    Task { @MainActor [weak self] in await self?.showHome() }
+})
+
+// ✅ the stored closure holds self weakly; the Task captures that weak reference
+child = ChildState(onBack: { [weak self] in
+    Task { @MainActor in await self?.showHome() }
+})
+```
+
+The rule: a capture list sits on the outermost closure that escapes, because that is where the
+reference is held.
 
 ## Structured concurrency
 

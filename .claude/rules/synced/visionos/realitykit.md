@@ -29,7 +29,7 @@ RealityView { content, attachments in
     if let ui = attachments.entity(for: UIEntity.AttachmentID.controls) {
         state.root.controlsAnchor.addChild(ui)
     }
-    // Other async tasks which need to run after view loaded must be detached: content will not be shown until this returns
+    // Work that must start after the content is shown goes in an unstructured Task: nothing appears until makeContent returns
     Task { await showMyAnimations() }
 } attachments: {
     Attachment(id: UIEntity.AttachmentID.controls) {
@@ -48,7 +48,7 @@ The `makeContent` closure executes a single time. Consequences:
 ## Entity rules
 
 - **BillboardComponent**: do not parent an entity under a `BillboardComponent` ancestor if the child needs independent orientation — reparent to the root entity instead
-- **z-offset**: keep ≤ 0.01 m from the SwiftUI attachment plane. Parallax error grows as `z_offset / anchor_depth` — visible at arm's length with offsets above 1 cm
+- **z-offset**: keep ≤ 0.01 m from the SwiftUI attachment plane. Parallax error grows as `z_offset / anchor_depth` — visible at arm's length with offsets above 1 cm. Where the offset cannot be removed, correct the horizontal position instead: `x_corrected = x * (anchor_depth - z_offset) / anchor_depth`
 - **Animations**: use `slide(to:)` with explicit world coordinates. `slide(by: Transform(translation:))` initialises scale to `[1,1,1]` and adds it to existing scale — a bug
 - **Transform is not Sendable**: do not capture `Transform` in `withTaskGroup` / `addTask` closures. Use `SIMD3<Float>` to pass positions across task boundaries
 
@@ -56,7 +56,6 @@ The `makeContent` closure executes a single time. Consequences:
 
 - Root views receive state via `@Environment(StateType.self)` — pass from the scene with `.environment(state)`
 - Mark views `@MainActor` when they access app or feature state
-- Async closures inside views: `Task { @MainActor [weak self] in ... }`
 
 ## Previews
 
@@ -66,6 +65,6 @@ Previews must supply all required environments:
 #Preview {
     MyFeatureView()
         .environment(MyFeatureState())
-        .environment(AppState.shared)
+        .environment(AppState())
 }
 ```

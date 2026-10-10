@@ -22,6 +22,7 @@ Use Swift Package Manager exclusively. Do not introduce CocoaPods or Carthage.
 
 Xcode auto-resolves packages on branch switches and dirties the workspace
 `Package.resolved` (`originHash` flips) — which then blocks `git switch`/`git rebase`
-with "unstaged changes". The committed version is the truth: `git checkout --` the
-churn before switching or rebasing. Never commit it unless a dependency bump is the
+with "unstaged changes". The committed version is the truth: restore it with
+`git restore -- Package.resolved` — after confirming the diff carries no intended bump —
+before switching or rebasing. Never commit it unless a dependency bump is the
 intent (see above — a bump is a deliberate diff).

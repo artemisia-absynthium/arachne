@@ -104,7 +104,7 @@ final class MyViewModel {
 
 ## SwiftLint
 
-The project's `.swiftlint.yml` is the authority on enforced rules; run `swiftlint <TargetName>` before submitting any Swift change. One rule needs judgment the linter can't supply: a `function_body_length` violation (50 lines) is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas).
+The project's `.swiftlint.yml` is the authority on enforced rules; run `swiftlint lint` from the repository root before submitting any Swift change — the standard invocation, which reads `.swiftlint.yml` there; a project that wraps it names its entry point in its own instruction files. One rule needs judgment the linter can't supply: where the project enables `function_body_length`, a violation is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas).
 
 ### Sole force-unwrap exception — `URL(string:)` on a compile-time literal
 

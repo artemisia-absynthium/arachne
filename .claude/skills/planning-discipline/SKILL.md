@@ -11,6 +11,29 @@ and who enforces it. A design review that fails is a plan that failed earlier: b
 the refactor is too large to fold into the same change and gets postponed, and postponed
 refactors compound.
 
+## Before the four questions — explore, then ask
+
+The four questions are answered against the code as it is, so two things come first.
+
+**Explore.** Delegate the reading to subagents that return the files that matter — the ones a
+design would touch, their callers, the in-house precedent — and read every file they name in
+the main thread before answering question 2. A summary of a file is not the file: "what each
+existing piece is for" is answered from its source, not from a report. Explorers and other
+output-heavy delegates (builds, test counts, documentation checks) run on `sonnet`, Claude Code's
+alias "for daily coding tasks" — reading and summarising is that, and it is the cheapest context
+sink; the main thread keeps the session's model, and a fork always inherits it.
+
+**Ask.** List every ambiguity, edge case, integration point, scope boundary and underspecified
+behaviour as concrete questions, and wait for the answers before any design exists: a question
+not asked becomes an assumption the design inherits, and nothing downstream can surface it.
+Skip the obvious ones; dig into the hard parts the owner may not have considered. When the
+answer is "whatever you think is best", state the recommendation and get it confirmed. This
+step is not skipped for a non-trivial change; for a change describable in one sentence, the
+questions are that sentence.
+
+**Then implement only on the owner's explicit approval of the plan.** Plan mode enforces this by
+construction; in any other mode this line is the gate.
+
 ## Before any design — four questions
 
 Every rule below this section evaluates a design that already exists. A rule positioned
@@ -200,8 +223,9 @@ from the property it must maintain. Only process forces derivation.
   per-path or per-consumer walk in the plan — or the qualifier that survives one. An
   unqualified claim is a promise to every future reader.
 - Design-note review precedes implementation: review the note + plan in a fresh context
-  BEFORE writing code. Findings cost sentences there; the same findings post-diff cost
-  review rounds.
+  BEFORE writing code, walking every lens `workflow/review-lenses.md` marks for the note —
+  the same lenses the diff gets later. Findings cost sentences there; the same findings
+  post-diff cost review rounds.
 
 **TDD — the property test precedes the mechanism:**
 - Contract-shaped behavior gets its PROPERTY TEST first: enumerate the event alphabet
@@ -212,6 +236,11 @@ from the property it must maintain. Only process forces derivation.
   zero that short-circuits the arithmetic, two values equal by accident) is a lying test.
   State why each magic value sits where it does relative to the property's boundary. The
   write-time rule is `assertions-must-be-falsifiable.md`.
+- Error-path census: one test per error case with an exact-case assertion — a type-only
+  "throws" check is semi-vacuous — and one per empty, boundary and absent state, read off the
+  error type and the input domain mechanically.
+- A behaviour change flips the test first (expectation to red), then the code (to green);
+  a test is never adjusted after the fact to match new code.
 
 **One authority per invariant.** Every invariant has exactly ONE authoritative statement —
 the branch's design note while work is in flight, or the subsystem contract table once it

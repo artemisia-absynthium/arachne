@@ -18,4 +18,4 @@ The pattern is: *"Build fails with X — this requires [specific human action] b
 
 ## Relationship to warnings
 
-This rule is about build errors (compilation failures). See the Xcode warning discipline rule for zero-warnings policy, which is a complementary but separate constraint.
+This rule is about build errors (compilation failures). The project's warning policy (zero warnings) is a complementary but separate constraint.

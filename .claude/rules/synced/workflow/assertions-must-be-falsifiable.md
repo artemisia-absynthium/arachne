@@ -34,14 +34,13 @@ asserted (`charter.md`).
 When a seam exists to pin an invariant with a test, write the test. A comment that says
 "deliberately not symmetrical with X" enforces nothing: the cleanup that makes it symmetrical
 passes green. This does not reach justifications the compiler or a linter demands — a warning
-suppression (`xcode/warnings.md`), a concurrency guarantee (`swift/concurrency.md`): those have
-no seam and stay comments.
+suppression, a concurrency guarantee the compiler cannot check: those have no seam and stay
+comments.
 
 ## Framework behaviour is a fact, not a rationale
 
 A suite header saying "serialized, so tests in this file cannot race the sibling suite" is a
-factual claim about the test framework (the Swift instance is in `swift/testing.md`). Verify
-it against an authoritative source (`terminology.md`) before writing it — a false rationale
+factual claim about the test framework. Verify it against an authoritative source (`terminology.md`) before writing it — a false rationale
 in a header is worse than none, because it tells the next author the protection is already
 in place.
 

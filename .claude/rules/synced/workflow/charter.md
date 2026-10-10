@@ -10,7 +10,8 @@ delegation. Invariants do this for the codebase; the charter does it for the wor
 
 ## Where
 
-`.claude/rules/charter.local.md` in the repository, gitignored (`.claude/rules/*.local.md`).
+`.claude/rules/charter.local.md` in the repository. The repository's `.gitignore` carries
+`.claude/rules/*.local.md`; add the line when it is missing, before the first charter is written.
 It has **no frontmatter**: an unscoped rule is re-injected from disk after every compaction; a
 `paths:`-scoped one is not. The charter is **task-tier** (see `terminology.md`): it lives and
 dies with the task plan, never in the repo's project plan.
@@ -21,9 +22,16 @@ dies with the task plan, never in the repo's project plan.
   is in context now (a rule file created mid-session is otherwise loaded only at the next launch
   or compaction), and linked as the task plan's first line
   (`Charter: .claude/rules/charter.local.md`) so reading or executing the plan forces reading it.
+- **The task plan follows the charter.** It is written in plan mode right after the charter, as a
+  machine-local file whose first line links the charter (`plan-execution.md`), and it carries the
+  tier line, the four questions' answers and the design note's location. At every divergence it
+  is amended in the same pause that updates the charter's `Now:`. At task close it is discarded
+  after the charter is checked and drained: a decision that outlives the task has by then moved
+  to the project plan's decision log, and the plan's only residue is the commit.
 - **Updated** at every divergence, in the same pause that produces the diagnosis
   (see `plan-execution.md`).
-- **Re-read** before every commit, and copied into every brief handed to a subagent.
+- **Re-read** before every commit, and copied into every brief handed to a subagent. Every
+  return is read against the lines the brief carried (`delegation.md`).
 - **Checked** at task close, after the review pass (`review-before-close.md`): every "must
   stay true" line answered with evidence, never asserted. *Done* means the charter is satisfied
   (see `terminology.md`). A check that comes

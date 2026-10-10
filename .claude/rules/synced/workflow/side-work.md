@@ -4,7 +4,7 @@ description: Side-work a task admits but does not need — a pre-existing warnin
 
 # Side-work carries a kill criterion
 
-Some rules put work into a task that the task did not ask for: `xcode/warnings.md` has
+Some rules put work into a task that the task did not ask for: a zero-warnings policy has
 pre-existing warnings fixed before the requested work starts, and debt on the path gets
 admitted "because it is a small change". Admitting it is right. Admitting it without a price is
 how a small, well-defined feature ends up rewriting code it never needed to touch. This rule is

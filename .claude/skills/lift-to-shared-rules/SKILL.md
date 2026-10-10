@@ -28,7 +28,7 @@ Do not use `gh api` to check push permission — it reads the permission field f
 
 Determine the category and file:
 
-- Known categories: `swift`, `ios`, `visionos`, `xcode`, `mac`, `android`, `web`, `workflow`
+- Known categories: the directories under `<repo>/rules/` — list them, never recall them
 - Map the rule to the most specific applicable category
 - Target file: `<repo>/rules/<category>/<topic>.md`
 - If no existing file fits within a category, create a new one with a descriptive name
@@ -67,7 +67,10 @@ it matches everything *and* disappears at the next compaction.
   (see `rules/workflow/charter.md`). They carry a one-line `description:` and **no `paths:`**.
   An action rule keeps its stack category — the category is the subject matter, and `workflow/`
   is synced to every subscriber, so moving it there would push stack-specific guidance to
-  projects that have no use for it:
+  projects that have no use for it. For the same reason, a `workflow/` rule's text is
+  stack-agnostic: it cites no file from a stack category (a subscriber may not sync that
+  category, and the reference then points at nothing), and its examples use no language or
+  framework — pseudocode or neutral notation only:
 
   ```markdown
   ---
@@ -132,6 +135,7 @@ Before any commit or PR is opened, present all of the following and wait for exp
 
 *Author checklist* (evaluated and attested by Claude):
 - Frontmatter matches what the rule governs: `paths:` scoped to the file types a file-type rule governs; a one-line `description:` and no `paths:` for `workflow/` and for any rule governing an action (must stay unscoped to be in context when the action is taken and to survive compaction). Never `paths: ["**/*"]`
+- A `workflow/` rule is stack-agnostic — no citation of a stack-category file, no language- or framework-specific example
 - Anonymization applied (Step 3) — no domain-specific names, paths, or identifiers remain
 - Not a restatement of Apple/framework documentation — captures a non-obvious constraint, gotcha, or decision
 - Non-obvious constraints include a short rationale (the *why*, not just the *what*)
@@ -222,6 +226,7 @@ On confirmation:
    ## Author checklist
 
    - [x] Frontmatter matches what the rule governs (`paths:` for a file-type rule; `description:` only for a process or action rule)
+   - [x] `workflow/` rule stack-agnostic (or: not a `workflow/` rule)
    - [x] Anonymized — no domain-specific names, paths, or identifiers
    - [x] Captures non-obvious constraint/gotcha
    - [x] Rationale included

@@ -47,6 +47,27 @@ The charter is satisfied with evidence (see `charter.md`), not the step list exh
 Anything not in the approved plan: a failing command, a surprising result, a changed setting or
 requirement, a question from the owner, an interruption.
 
+## Glossary
+
+A project's ubiquitous language: one entry per named concept, read before the concept is
+touched; a new concept is named there before it is coded. Project-tier, in the repo.
+
+## Contract table
+
+The single authority for a subsystem's standing invariants, each with its enforcement point.
+Design notes fold into it at merge; every other artifact points at it and restates nothing.
+
+## Decision record
+
+What was decided, when, and the alternatives rejected, written at decision time and left
+there; the living mechanism is described at the contract table, never in the record.
+
+## Design note
+
+The branch-lived statement of the types, the state ownership and the invariants one change
+adds or changes — bounded, reviewed in a fresh context before code, disposed of into the
+contract table in the branch's final commit (`change-tiers.md`).
+
 ## Task plan
 
 The plan for one task on one branch, read only by the session(s) executing it: machine-local,

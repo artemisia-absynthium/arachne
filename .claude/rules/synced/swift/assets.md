@@ -19,7 +19,7 @@ Image(.myIcon)
 Image("myIcon")
 ```
 
-For UIKit (`UIImage(resource:)`), see `ios/assets.md`.
+UIKit reads the same generated symbols: `UIImage(resource: .myIcon)`. Consumers that sync the `ios` category have the UIKit-specific detail in `ios/assets.md`.
 
 ## Color assets — use ColorResource, not strings
 

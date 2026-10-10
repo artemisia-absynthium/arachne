@@ -24,9 +24,10 @@ Rules:
 - **After any GUI scheme edit — yours or the user's — re-read the scheme file
   and re-verify its hand-maintained invariants** before running tests or
   committing. Treat an unexpected `.xcscheme` diff as a red flag, not noise.
-- **Document scheme invariants in the project's CLAUDE.md** (which testables
-  must stay skipped, whether the Test action may inherit Run arguments, which
-  StoreKit configuration each action uses) so they can be re-applied after a
+- **Document scheme invariants in a dedicated project document** — a rules file or a
+  page under the project's docs that the scheme-touching rule points at, never CLAUDE.md
+  (which testables must stay skipped, whether the Test action may inherit Run arguments,
+  which StoreKit configuration each action uses) — so they can be re-applied after a
   rewrite instead of being rediscovered through test failures.
 - When a hand edit must survive, prefer expressing the intent through means
   Xcode preserves (e.g. a separate scheme for the special workflow) over

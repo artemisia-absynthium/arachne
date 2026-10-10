@@ -11,13 +11,17 @@ description: Create a GitHub pull request from the current branch — base detec
 - The PR is created from the **current branch** of the repo the user is working in.
 - Opening the PR is the publish step: the request to open it covers the push of the branch.
 
-## 0. Verify `gh` authentication
+## 0. Verify `gh` can reach this repo's remote
 
 ```bash
+git remote get-url origin
 gh auth status
 ```
 
-If `gh` is signed out, stop and ask the user to run `gh auth login` in a terminal tab, then retry.
+The remote URL's host must be one `gh auth status` lists as logged in. An SSH alias (anything
+that is not a hostname `gh` knows) or an unlisted host means `gh` would act as a different
+identity than the repo's git remote: stop and say so. If `gh` is signed out, stop and ask the
+user to run `gh auth login` in a terminal tab, then retry.
 
 ## 1. Get the current GitHub user
 
