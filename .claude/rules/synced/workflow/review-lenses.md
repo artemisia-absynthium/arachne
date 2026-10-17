@@ -20,7 +20,7 @@ that applies only once says so below.
 | Security — trust boundaries, secrets, injection, data handling | yes | yes | the brief, or a security reviewer where one exists |
 | Complexity and performance — scale stated, asymptotics at realistic scale | yes | yes | `planning-discipline` complexity; the design lens |
 | Conventions — the project's own rules | — | yes | the conventions reviewer |
-| Comments and docs — accuracy against the code, `docs-sync.md` | — | yes | the comment reviewer |
+| Comments and docs — read as the role's reader (`docs-record-decisions.md`): a sentence false, or one the reader does not need; completeness is not a lens | — | yes | the comment reviewer |
 | Dead code and dead tests | — | yes | the brief |
 
 ## The threshold for a finding

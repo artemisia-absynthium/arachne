@@ -1,8 +1,28 @@
 ---
-description: Docs, design notes and doc comments record decisions and invariants, never facts about the current text — cite code by symbol and role, never by line; path:line belongs in conversation only; a count in prose is removed when found, never updated
+description: One role per artifact and one test per sentence — the architect writes the markdown, the developer the comments; docs record decisions, never facts about the current text; a count in prose is removed when found, never updated
 ---
 
 # Documentation Records Decisions, Not Code State
+
+## One role per artifact, one test per sentence
+
+Who writes a text decides what goes in it, and each role keeps only the sentences that pass
+its test. The default role is the developer documenting the system as built, and it produces
+the mechanism, every edge case and every link — which is what a reviewer disputes.
+
+- **Markdown — the architect.** The reader is deciding where a change goes, or whether a
+  library fits. A sentence stays only if that reader would decide differently without it: the
+  boundary and the reason, never the mechanism. A measured platform fact is not architecture;
+  it is a comment at the site and a line in the PR body.
+- **Code comments — the developer.** The reader is the next person at this line. A few
+  self-contained lines over a non-obvious snippet or choice, saying why; a sentence stays only
+  if that reader would get the line wrong without it. A pointer to the authority by id is fine;
+  a restatement of it is not.
+- **The reviewer reads a text as its role's reader.** A docs finding is a sentence that is
+  false, or one the reader does not need. A missing sentence is never a finding, so a review
+  round never lands on documentation alone.
+
+Every fact has one place; every other text points to it and restates nothing.
 
 Docs, design notes, contract documents and `///` doc comments describe **what is decided** —
 the architecture, the invariants, the constraints, and the reasons behind them (the project
@@ -42,9 +62,9 @@ assertion), never in a document.
     (`grep -c "owners\[id\] = "` = 2).
 ```
 
-A contract states each invariant and its **enforcement point by role** — the type or function
-responsible. A walk-through citing `L57`, `:412` or "the guard two lines above" is an
-implementation snapshot, not a contract.
+An invariant's authority is the test that pins it. A contract table holds only the invariants
+no test pins, one line each, the property alone — never a walk-through of the mechanism that
+enforces it, which is an implementation snapshot, not a contract.
 
 Never count items in prose ("the nine defects below"). The list is the count; the sentence is
 stale the moment an entry is added.
@@ -70,9 +90,11 @@ check reads it (above).
 ## A count is never evidence — PR bodies, commit messages and reviews included
 
 The `path:line` exemption for conversation does not extend to counts. A PR body, a commit message
-and a review comment carry no totals, no baselines, no occurrence or line counts: a verification
-line says that the test-count check is green on the final head's result bundle, never what the
-number was, and the baseline it was judged against lives only where the check reads it.
+and a review comment carry no totals, no baselines, no occurrence or line counts: a PR body says
+the checks are green on the final head, never what a number was, and the baseline a check judged
+against lives only where the check reads it. A commit message is its subject line, in the
+repository's conventional form; a body only when the subject cannot carry the why, and never
+verification or review-round lines.
 
 On the reading side a reviewer ignores every count it meets — it never reconciles one, disputes
 one, or reasons from one. A finding stands on the defect: a test that cannot finish, a row the

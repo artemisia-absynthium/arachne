@@ -106,6 +106,25 @@ final class MyViewModel {
 
 The project's `.swiftlint.yml` is the authority on enforced rules; run `swiftlint lint` from the repository root before submitting any Swift change — the standard invocation, which reads `.swiftlint.yml` there; a project that wraps it names its entry point in its own instruction files. One rule needs judgment the linter can't supply: where the project enables `function_body_length`, a violation is a code smell — decompose into smaller, focused functions. Do not recover the line count with cosmetic tricks (collapsing lines, dropping trailing commas).
 
+### Suppression
+
+When to suppress, and that a suppression carries the reason the fix would be worse, is `workflow/warnings.md`; `.swiftlint.yml` is never where a rule is silenced. This is the SwiftLint shape of a justified suppression: the narrowest directive, the reason immediately above.
+
+```swift
+// Bundle lookup returns non-nil by construction — resource is bundled at build time.
+// swiftlint:disable:next force_unwrapping
+let configURL = bundle.url(forResource: "Config", withExtension: "plist")!
+```
+
+For more than one line, re-enable immediately after the offending lines:
+
+```swift
+// Dequeue is guaranteed by storyboard registration in viewDidLoad.
+// swiftlint:disable force_cast
+let cell = tableView.dequeueReusableCell(withIdentifier: id) as! MyCell
+// swiftlint:enable force_cast
+```
+
 ### Sole force-unwrap exception — `URL(string:)` on a compile-time literal
 
 `URL(string: "…")!` is allowed when the argument is a hardcoded string literal. The parse is deterministic and environment-independent: a literal that parses today parses on every device forever, so no runtime failure path exists — an `if let` around it is a dead branch, and demanding one is overengineering. Do not flag existing literal-URL unwrap sites or propose cleanups for them.
@@ -120,4 +139,4 @@ static let supportURL = URL(string: "https://example.com/support")!
 let url = URL(string: baseURLString + path)!
 ```
 
-In projects that enable SwiftLint's `force_unwrapping` rule, pair the unwrap with the narrowly-scoped justified suppression from the warning-discipline policy.
+In projects that enable SwiftLint's `force_unwrapping` rule, pair the unwrap with the narrowly-scoped justified suppression above.

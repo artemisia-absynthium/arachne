@@ -24,7 +24,7 @@ charter lines (`charter.md`) and states:
 - **Scope.** Defects the diff introduced or touched decide the verdict; pre-existing defects in
   unchanged code are observations, never failures. A review that fails every change for legacy
   debt gets ignored. Build errors and warnings are outside this rule: verification settles them
-  (`build-discipline.md` and the project's warning policy), and the brief carries that result.
+  (`build-discipline.md` and `warnings.md`), and the brief carries that result.
 - **Threshold.** A finding names the invariant, requirement or reproduction behind it
   (`review-lenses.md`); a clean result is the expected outcome of sound work and the brief says
   so, because a reviewer asked to find gaps reports some even when there are none.

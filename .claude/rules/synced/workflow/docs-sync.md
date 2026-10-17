@@ -14,15 +14,11 @@ The rationale: open-ended end-of-task questions ("is there a doc to update?") fi
 unreliably under task-completion momentum. A mandatory report line is an artifact whose
 absence is visible, and mechanical triggers replace judgment with a check.
 
-Mechanical triggers — the README (and any consumer-facing doc, and the project plan where one
-exists: roadmap, decision log, design doc — see `plan-execution.md`) is presumed STALE and must
-be diffed against the change whenever the diff touches:
-
-- a public declaration (API added / changed / removed)
-- the package/build manifest (products, targets, dependencies, platform floors)
-- a wire contract, file format, or on-disk layout
-- a setup, build, or configuration step
-- a decision, a gate, an invariant, or the next work item recorded in the project plan
+The one trigger: the diff made a sentence of the README (or of a consumer-facing doc, or of
+the project plan where one exists — `plan-execution.md`) false, or left its reader unable to
+proceed — a changed setup, build or configuration step, a consumer-facing API or manifest, a
+wire contract or on-disk layout, a decision or next work item the plan records. The doc is
+then edited to be true again, never to add what the change did not make false.
 
 "Unaffected" is only valid with the reason stated. Never omit the line; never answer it
 from memory — open the doc and check.

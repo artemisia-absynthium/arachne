@@ -41,4 +41,5 @@ one is `respond-to-pr-review`. This rule is about how a finding is communicated.
 
 - Findings are resolved or explicitly acknowledged — never silently dropped.
 - Anything resting on undocumented platform behaviour in a load-bearing path is a design
-  finding, not a style note: design it away or demonstrate it empirically.
+  finding, not a style note: design it away or demonstrate it empirically. The demonstration
+  is recorded in the PR body and as a comment at the site, never in a document.

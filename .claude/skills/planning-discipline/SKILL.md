@@ -242,16 +242,13 @@ from the property it must maintain. Only process forces derivation.
 - A behaviour change flips the test first (expectation to red), then the code (to green);
   a test is never adjusted after the fact to match new code.
 
-**One authority per invariant.** Every invariant has exactly ONE authoritative statement —
-the branch's design note while work is in flight, or the subsystem contract table once it
-is standing behaviour. Every other artifact (ADR, glossary, contract tables, test docs,
-code comments) POINTS to that authority by invariant name and never restates the mechanism
-or its justification. A pointer cannot drift; a restatement is a guaranteed future review
-finding. ADRs record the decision and rejected alternatives at decision time; the living
-mechanism is described only at the authority. When a change makes the authority's statement
-false, updating it lands in the same commit as the code. (Measured, 2026-08-12 gate cycle:
-roughly half of all findings across five rounds were restatement drift across six
-artifacts — one authority makes the ripple surface one.)
+**One authority per invariant.** An invariant's authority is the design note while the work
+is in flight and the test that pins it once it has landed; an invariant no test pins gets one
+line in the subsystem's contract table, the property alone. Nothing else restates it: an ADR
+records the decision and the rejected alternatives at decision time, a comment at the site
+says why, and neither describes the mechanism. A pointer cannot drift; a restatement is a
+guaranteed future review finding. (Measured, 2026-08-12 gate cycle: roughly half of all
+findings across five rounds were restatement drift across six artifacts.)
 
 ## Tiebreak
 

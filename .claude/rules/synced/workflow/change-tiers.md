@@ -55,31 +55,27 @@ New behaviour, type or message; existing boundaries respected.
   file.
 - **The note reviewed in a fresh context before code**, walking every note-time lens in
   `review-lenses.md`: a finding costs a sentence there and a review round after the diff.
-- TDD as `planning-discipline` derives it; docs updated wherever a contract table or reference
-  section is touched (`docs-sync.md`).
+- TDD as `planning-discipline` derives it; docs per `docs-sync.md`.
 - **The review pass once, on the final diff.** Design-note conformance is the design lens's
   first job: the code matches the note's types, ownership and invariants; drift in either
   direction is a finding, so is work in the diff the note never mentions, and every unqualified
-  universal ("never", "always", "all") gets a per-consumer walk or a finding. After disposal,
-  the reviewer reads the note from the commit before its deletion and judges against the
-  folded rows.
-- **Before merge, in the branch's final commit, dispose of the note**: fold every surviving
-  added or changed invariant into the owning contract table — a subsystem with none gets one
-  seeded from the note — re-point every reference that named the note at the table, then
-  delete the note; history keeps it. A retained note is a second authority
-  (`planning-discipline`: one authority per invariant). Nothing is deferred past the merge: a
-  disposal step with no PR to carry it never happens.
+  universal ("never", "always", "all") gets a per-consumer walk or a finding.
+- **The note is task-tier**: it lives beside the task plan, machine-local, is what the
+  reviewers read, and is discarded at close — never committed, never folded into a document.
+  Its residue is the tests that pin its invariants; an invariant no test pins gets one line
+  in the subsystem's contract table, in the same commit as the code (`planning-discipline`:
+  one authority per invariant).
 
 ## T3 — Architectural
 
 A new subsystem, a wire-contract or on-disk-format change, moved ownership or boundaries, a
 new dependency, deployed-data impact. In order: the glossary first — every concept the change
 touches has an entry, and a new concept is named before it is coded; the strategic pass —
-which bounded context owns this, does an aggregate boundary move; the design note plus a
-decision record with its rejected alternatives — the record holds the decision, the note the
-invariants; the architecture map's delta where containers or components change; contract
-tables updated before the behaviour changes; the fresh-context note review, TDD,
-implementation; self-review and the review pass, dead code and dead tests removed.
+which bounded context owns this, does an aggregate boundary move; the design note, plus a
+decision record when the decision outlives the code — a boundary, a dependency, a wire or
+on-disk format — with its rejected alternatives one line each; the architecture map's delta
+where containers or components change; the fresh-context note review, TDD, implementation;
+self-review and the review pass, dead code and dead tests removed.
 
 ## Session start — the project's memory substitute
 

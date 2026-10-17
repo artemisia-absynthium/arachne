@@ -54,8 +54,8 @@ touched; a new concept is named there before it is coded. Project-tier, in the r
 
 ## Contract table
 
-The single authority for a subsystem's standing invariants, each with its enforcement point.
-Design notes fold into it at merge; every other artifact points at it and restates nothing.
+The one-line-per-invariant list of what no test pins in a subsystem, the property alone.
+Every other artifact points at it and restates nothing.
 
 ## Decision record
 
@@ -64,9 +64,9 @@ there; the living mechanism is described at the contract table, never in the rec
 
 ## Design note
 
-The branch-lived statement of the types, the state ownership and the invariants one change
-adds or changes — bounded, reviewed in a fresh context before code, disposed of into the
-contract table in the branch's final commit (`change-tiers.md`).
+The task-tier statement of the types, the state ownership and the invariants one change
+adds or changes — bounded, reviewed in a fresh context before code, machine-local, discarded
+at close (`change-tiers.md`).
 
 ## Task plan
 
