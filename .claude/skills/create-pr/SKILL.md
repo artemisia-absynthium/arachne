@@ -121,3 +121,6 @@ BODY
 ```
 
 ## 8. Return the PR URL to the user
+
+With it, one line of what ran before the PR — build, tests, `/code-review` (or "not run"), a
+device check — as a report of the owner's choices, never a gate.

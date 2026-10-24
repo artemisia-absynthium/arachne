@@ -10,11 +10,7 @@ A passing build is a mandatory verification step and part of the Definition of D
 
 Some build failures require the developer to act — for example: missing generated assets, missing credentials, or hardware-specific setup that cannot be automated. In those cases:
 
-- Flag the blocker to the user explicitly: name the file, the missing asset, or the setup step required.
-- Do **not** proceed past the verification step and claim the task is done.
-- Do **not** suppress or work around the error to make the build pass artificially.
-
-The pattern is: *"Build fails with X — this requires [specific human action] before I can verify. Once resolved, I'll confirm the build passes."*
+Name the file, the missing asset or the setup step, and never suppress or work around the error to make the build pass: *"Build fails with X — this requires [specific human action] before I can verify."*
 
 ## Relationship to warnings
 

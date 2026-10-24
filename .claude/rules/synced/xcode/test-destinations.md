@@ -1,5 +1,5 @@
 ---
-description: Run every platform the target supports, resolve each destination from the machine instead of hardcoding a device or an OS, and read the run's terminal verdict without truncating the stream
+description: Run every platform the target supports, resolve each destination from the machine instead of hardcoding a device or an OS (a store screenshot slot is a pixel size, never a device), and read the run's terminal verdict without truncating the stream
 ---
 
 # Test Destinations and Platform Coverage
@@ -79,6 +79,27 @@ xcodebuild test -scheme MyApp -destination 'platform=macOS,arch=arm64'
 
 Use `--sdk watchsimulator` / `appletvsimulator` / `xrsimulator`, with the matching
 `SimRuntime.watchOS-` / `tvOS-` / `xrOS-` prefix, for the other simulator platforms.
+
+## Store screenshots: a slot is a pixel size, never a device
+
+An App Store screenshot slot is defined by the image's pixel dimensions, and the simulator that
+produces it is whichever device on the selected runtime has a screen of exactly that size. A
+runbook or any other durable doc states the **slot and its pixel size** — the one fact that does
+not move — and the device is chosen when the screenshots are generated, never written down:
+
+```bash
+# ❌ rots with the next runtime
+-destination "platform=iOS Simulator,name=<a 6.5-inch iPhone model>"
+
+# ✅ the requirement; pick or create a matching simulator at generation time
+IPHONE_UDID=…   # <width> × <height> px — the 6.5" slot (sizes: Apple's screenshot specifications)
+```
+
+Rationale: the sizes a slot accepts are Apple's to define, while the device models that have them
+come and go with each Xcode runtime — a slot can end up matched by a single legacy device type that
+no current simulator instance uses, so a named device looks unavailable while the slot is still
+fillable. Take the accepted sizes from Apple's "Screenshot specifications" page in App Store
+Connect Help, not from memory: a slot can accept more than one size.
 
 ## Diagnose the destination before blaming the diff
 

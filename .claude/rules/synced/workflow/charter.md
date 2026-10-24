@@ -1,68 +1,34 @@
 ---
-description: Per-task charter — the concerns that must stay true, held as an unscoped gitignored rule so they survive compaction and delegation
+description: Per-task charter — the concerns that must stay true and what done means, each with its source, held as a gitignored local rule so it survives compaction and reaches every brief and every commit
 ---
 
 # Charter — what must stay true for the task
 
-A charter is the short list of concerns a task must keep true from start to finish — the
-holistic picture, held explicitly so it survives long sessions, context compaction and
-delegation. Invariants do this for the codebase; the charter does it for the work.
+A charter is the short list of concerns a task must keep true from start to finish, held
+explicitly so it survives long sessions, context compaction and delegation. It exists when a
+plan does — a change that cannot be described in one sentence — and never otherwise.
 
-## Where
-
-`.claude/rules/charter.local.md` in the repository. The repository's `.gitignore` carries
-`.claude/rules/*.local.md`; add the line when it is missing, before the first charter is written.
-It has **no frontmatter**: an unscoped rule is re-injected from disk after every compaction; a
-`paths:`-scoped one is not. The charter is **task-tier** (see `terminology.md`): it lives and
-dies with the task plan, never in the repo's project plan.
-
-## Lifecycle
-
-- **Written** in plan mode at task start, before the first step — then read immediately so it
-  is in context now (a rule file created mid-session is otherwise loaded only at the next launch
-  or compaction), and linked as the task plan's first line
-  (`Charter: .claude/rules/charter.local.md`) so reading or executing the plan forces reading it.
-- **The task plan follows the charter.** It is written in plan mode right after the charter, as a
-  machine-local file whose first line links the charter (`plan-execution.md`), and it carries the
-  tier line, the four questions' answers and the design note's location. At every divergence it
-  is amended in the same pause that updates the charter's `Now:`. At task close it is discarded
-  after the charter is checked and drained: a decision that outlives the task has by then moved
-  to the project plan's decision log, and the plan's only residue is the commit.
-- **Updated** at every divergence, in the same pause that produces the diagnosis
-  (see `plan-execution.md`).
-- **Re-read** before every commit, and copied into every brief handed to a subagent. Every
-  return is read against the lines the brief carried (`delegation.md`).
-- **Checked** at task close, after the review pass (`review-before-close.md`): every "must
-  stay true" line answered with evidence, never asserted. *Done* means the charter is satisfied
-  (see `terminology.md`). A check that comes
-  out complete for a design later found wrong is not a failure of the check — it means the
-  lines measured properties of the result, not whether the result should exist. That is
-  decided before the charter is written, by the four questions in `planning-discipline`.
-- **Drained** at task close: every decision under `Waiting on the owner` that was resolved,
-  and every decision taken during the task that outlives it, is written to the project plan's
-  decision log (see `plan-execution.md`) before the charter is discarded. A decision that
-  exists only in a gitignored file is lost with it.
-
-## Shape — concerns, not steps; about fifteen lines
+## Shape — about ten lines
 
 ```
 # Charter — <task>
-Goal: <one sentence — the observable outcome>.
 Must stay true: <concern> (<source>) · <concern> (<source>) · …
 Done means: <the observable, not the step list>.
-Now: <the current step within this task — not the roadmap's next work item>.
-Waiting on the owner: <open decisions, verbatim>.
 ```
 
-## Every "must stay true" line carries its source
-
-A line's source is one of three things: the owner said it, a named caller depends on it
+Every "must stay true" line carries its source: the owner said it, a named caller depends on it
 (the `Consumers:` entry in the plan), or a test pins it. A line with none of those is a
-preference the author added, and it does not belong here — it is weighed against
-simplicity at plan time (`planning-discipline`, question 4) and may lose.
+preference the author added, and it does not belong here: "public API stays unchanged", written
+because it felt safe, becomes a constraint every later decision pays for in mechanism, and nobody
+asked for it. With a source required, the line either names who needs it or does not get written.
+That is the difference between a charter and a cage.
 
-This is the difference between a charter and a cage. "Public API stays unchanged," written
-by the author because it felt safe, becomes a constraint every later decision pays for in
-mechanism; nobody asked for it, and the plan never got to weigh a deprecation against the
-cost of honoring it. With a source required, that line either names the caller who needs
-it or does not get written.
+## Where, and why there
+
+`.claude/rules/charter.local.md` in the repository, with `.claude/rules/*.local.md` in its
+`.gitignore` and **no frontmatter**: an unscoped rule is re-read from disk after every
+compaction, which is what keeps the charter in context without anyone restating it, and a
+`PreToolUse` hook on `git commit` reads it at the moment it matters. The plan's first line links
+it. It is copied into every brief handed to a subagent, and every return is read against its
+lines (`delegation.md`). It is discarded with the plan; its residue is the commit and the pull
+request. *Done* (`terminology.md`) means its lines hold, with evidence.

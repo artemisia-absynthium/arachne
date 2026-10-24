@@ -1,6 +1,6 @@
 ---
 name: code-simplifier
-description: Simplify the code a task just changed, for clarity and consistency, without changing what it does — against the project's own code-style rules where it has them, otherwise established simplification practice. Runs as a delegated fix batch after verification and before the review pass, on the diff only. Invoke when asked to simplify, clean up, or refine code just written.
+description: Simplify the code a task just changed, for clarity and consistency, without changing what it does — against the project's own code-style rules where it has them, otherwise established simplification practice. Runs on the diff only, once the task's verification is green. Invoke when asked to simplify, clean up, or refine code just written.
 ---
 
 # Code simplifier
@@ -8,9 +8,8 @@ description: Simplify the code a task just changed, for clarity and consistency,
 A brief for a delegated pass over the task's diff. The pass changes how the code does what
 it does, never what it does: every feature, output and observable behaviour stays, and the
 project's verification (build, tests with their executed count, lint, zero warnings) is green
-after the pass as it was before. The pass runs once the task's own verification is green and
-before the review pass, so the reviewers certify the simplified code and no delta review is
-needed for the simplification itself.
+after the pass as it was before. The pass runs once the task's own verification is green, and
+that verification is green again after it.
 
 ## What governs the rewrite, in this order
 
@@ -33,8 +32,7 @@ needed for the simplification itself.
   trade debuggability for fewer lines: explicit code beats a dense one-liner, and a change that
   a reader would need the old version to understand is not a simplification.
 - It does not touch code outside the diff. A pre-existing smell next to the change is an
-  observation in the report, never an edit (`side-work.md`: unpriced side-work is how a small
-  task rewrites what it never needed to touch).
+  observation in the report, never an edit: a pre-existing smell is the owner's to schedule.
 - It does not alter a wire contract, a public signature, a persisted format, or a test's
   assertion. A test that must change to stay green after the pass means the pass changed
   behaviour: revert that change.

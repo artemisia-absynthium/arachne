@@ -1,6 +1,6 @@
 ---
 name: planning-discipline
-description: Four questions before any design exists (the problem without type names; what each existing piece is for; old against new at the caller's boundary; alternatives including replace-or-delete), then type-level design (SOLID/SRP), invariant-first planning, named precedents, and complexity budgets. Invoke while planning or designing any non-trivial feature — mandatory for stateful mechanisms (state machines, caches, sync/retry, lifecycles) and for any plan touching a public or cross-module symbol — and when reviewing a design note before code exists.
+description: Four questions before any design exists (the problem without type names; what each existing piece is for; old against new at the caller's boundary; alternatives including replace-or-delete), then type-level design (SOLID/SRP), invariant-first planning, named precedents, and complexity budgets. Invoke when a change cannot be described in one sentence — a stateful mechanism (state machine, cache, sync/retry, lifecycle), a public or cross-module symbol, a new type — and when the owner asks for a design note.
 ---
 
 # Planning discipline — four questions, then type-level design + invariant-first
@@ -15,13 +15,11 @@ refactors compound.
 
 The four questions are answered against the code as it is, so two things come first.
 
-**Explore.** Delegate the reading to subagents that return the files that matter — the ones a
-design would touch, their callers, the in-house precedent — and read every file they name in
-the main thread before answering question 2. A summary of a file is not the file: "what each
-existing piece is for" is answered from its source, not from a report. Explorers and other
-output-heavy delegates (builds, test counts, documentation checks) run on `sonnet`, Claude Code's
-alias "for daily coding tasks" — reading and summarising is that, and it is the cheapest context
-sink; the main thread keeps the session's model, and a fork always inherits it.
+**Explore.** Explorers return the files that matter — the ones a design would touch, their
+callers, the in-house precedent — and every file they name is read in the main thread before
+question 2 is answered: a summary of a file is not the file, and "what each existing piece is
+for" is answered from its source. Explorers and other output-heavy delegates (builds, test counts,
+documentation checks) run on `sonnet`; the main thread keeps the session's model.
 
 **Ask.** List every ambiguity, edge case, integration point, scope boundary and underspecified
 behaviour as concrete questions, and wait for the answers before any design exists: a question
@@ -31,8 +29,9 @@ answer is "whatever you think is best", state the recommendation and get it conf
 step is not skipped for a non-trivial change; for a change describable in one sentence, the
 questions are that sentence.
 
-**Then implement only on the owner's explicit approval of the plan.** Plan mode enforces this by
-construction; in any other mode this line is the gate.
+**Then go.** Check in only where different readings of the answers would lead to materially
+different work; a question the owner already answered is not re-asked as an approval. Plan mode,
+when the owner is in it, is where the plan is written and read, not a gate of its own.
 
 ## Before any design — four questions
 
@@ -185,8 +184,7 @@ Consumers: <symbol> — <call site path:line, found by grepping the whole reacha
 One line per real call site, not per file. `Consumers: none found — <symbol> is
 private/internal with no cross-module reachability` is the explicit negative — a valid
 entry, never an omission. A plan with a changed public/cross-module symbol and no
-`Consumers:` section is not approvable, the same way a missing doc-update line makes a
-completion report incomplete (`docs-sync.md`): the check is mechanical because open-ended
+`Consumers:` section is not approvable: the check is mechanical because open-ended
 judgment fires unreliably under plan-approval momentum. It is the cross-module form of
 question 3 above — old guarantees against new, at every boundary a caller can see — and
 of the per-consumer walk `Invariant-first` requires for universal claims.
@@ -210,7 +208,7 @@ from the property it must maintain. Only process forces derivation.
   is proposed only after the property it serves is written; if the property can't be
   written, the requirement isn't understood yet.
 - Every invariant of the form "X stays consistent with Y" names its ENFORCEMENT POINT: the
-  function or type where Y changes, named by role and symbol (`docs-record-decisions.md`).
+  function or type where Y changes, named by role and symbol.
   Unnameable ⇒ the invariant is unowned ⇒ the plan is not approvable. Reactive enforcement
   (checked where the value is consumed) requires explicit justification of the window between
   the change and the check.
@@ -222,16 +220,14 @@ from the property it must maintain. Only process forces derivation.
 - Universal quantifiers ("never", "always", "exactly once", "all surfaces") require a
   per-path or per-consumer walk in the plan — or the qualifier that survives one. An
   unqualified claim is a promise to every future reader.
-- Design-note review precedes implementation: review the note + plan in a fresh context
-  BEFORE writing code, walking every lens `workflow/review-lenses.md` marks for the note —
-  the same lenses the diff gets later. Findings cost sentences there; the same findings
-  post-diff cost review rounds.
+- A review of the note before code (`workflow/review.md` for the brief) walks the design, types,
+  invariants and concurrency lenses in a fresh context. Findings cost sentences there; the same
+  findings post-diff cost review rounds.
 
-**TDD — the property test precedes the mechanism:**
-- Contract-shaped behavior gets its PROPERTY TEST first: enumerate the event alphabet
-  (every mutation the state can receive), write the property over event sequences, watch it
-  fail, then build the mechanism until it passes. Unit tests of the mechanism come after
-  and cover its edges.
+**Tests for a stateful mechanism** (test-first when the owner asks for it; it is not the default):
+- Contract-shaped behaviour gets a PROPERTY TEST: enumerate the event alphabet (every mutation
+  the state can receive) and write the property over event sequences. Unit tests of the
+  mechanism cover its edges.
 - Every fixture value is load-bearing: a fixture that satisfies assertions vacuously (a
   zero that short-circuits the arithmetic, two values equal by accident) is a lying test.
   State why each magic value sits where it does relative to the property's boundary. The
@@ -239,23 +235,22 @@ from the property it must maintain. Only process forces derivation.
 - Error-path census: one test per error case with an exact-case assertion — a type-only
   "throws" check is semi-vacuous — and one per empty, boundary and absent state, read off the
   error type and the input domain mechanically.
-- A behaviour change flips the test first (expectation to red), then the code (to green);
-  a test is never adjusted after the fact to match new code.
+- A test is never adjusted after the fact to match new code; a behaviour change changes the
+  expectation first.
 
 **One authority per invariant.** An invariant's authority is the design note while the work
-is in flight and the test that pins it once it has landed; an invariant no test pins gets one
-line in the subsystem's contract table, the property alone. Nothing else restates it: an ADR
-records the decision and the rejected alternatives at decision time, a comment at the site
-says why, and neither describes the mechanism. A pointer cannot drift; a restatement is a
-guaranteed future review finding. (Measured, 2026-08-12 gate cycle: roughly half of all
-findings across five rounds were restatement drift across six artifacts.)
+is in flight and the test that pins it once it has landed; the reason lives in one comment at
+the enforcement point, the way the surrounding code comments. Nothing else restates it: a
+pointer cannot drift, a restatement is a guaranteed future review finding. (Measured,
+2026-08-12 gate cycle: roughly half of all findings across five rounds were restatement drift
+across six artifacts.)
 
 ## Tiebreak
 
 When this discipline and delivery pressure conflict, the invariant and type-level work IS
 the schedule: plan-time sentences skipped return as full review rounds, with interest.
 
-## Review pass
+## Refactor and design review — on request
 
-For reviewing a finished diff or branch (rather than a plan), invoke `design-review-lens` —
-the full SOLID/Clean Architecture/GRASP checklist.
+When the owner asks for a refactor, or for a design review of a finished diff or branch, invoke
+`design-review-lens` — the full SOLID/Clean Architecture/GRASP checklist.

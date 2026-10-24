@@ -1,5 +1,5 @@
 ---
-description: Definitions other rules cite — fix vs workaround, the authority order of sources, done, unplanned event, task plan vs project plan
+description: Definitions other rules cite — fix vs workaround, the authority order of sources, done, unplanned event, design note, task plan
 ---
 
 # Terminology
@@ -47,36 +47,14 @@ The charter is satisfied with evidence (see `charter.md`), not the step list exh
 Anything not in the approved plan: a failing command, a surprising result, a changed setting or
 requirement, a question from the owner, an interruption.
 
-## Glossary
-
-A project's ubiquitous language: one entry per named concept, read before the concept is
-touched; a new concept is named there before it is coded. Project-tier, in the repo.
-
-## Contract table
-
-The one-line-per-invariant list of what no test pins in a subsystem, the property alone.
-Every other artifact points at it and restates nothing.
-
-## Decision record
-
-What was decided, when, and the alternatives rejected, written at decision time and left
-there; the living mechanism is described at the contract table, never in the record.
-
 ## Design note
 
 The task-tier statement of the types, the state ownership and the invariants one change
-adds or changes — bounded, reviewed in a fresh context before code, machine-local, discarded
-at close (`change-tiers.md`).
+adds or changes — written when the change does not fit in one sentence, bounded, machine-local,
+discarded at close (`plan-execution.md`).
 
 ## Task plan
 
 The plan for one task on one branch, read only by the session(s) executing it: machine-local,
 never committed, discarded at task close. The charter is task-tier. Discipline in
 `plan-execution.md`.
-
-## Project plan
-
-What the next session must read to plan the next step — roadmap with a `## Now` pointer,
-dated decision log, design and invariants: in the repo, committed with the code that changes
-it, never machine-local. The test between the two tiers: if the next session needs the file, it
-is project-tier; if it only needs the outcome, it is task-tier.

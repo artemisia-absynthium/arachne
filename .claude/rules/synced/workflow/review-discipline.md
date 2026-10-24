@@ -6,7 +6,7 @@ description: How findings are communicated, for reviewer and author alike — on
 
 These rules apply in both directions: today's reviewer is tomorrow's author. Multi-round review
 dances are almost always caused by process, not by hard code, and each rule below is named after
-the failure it prevents. What a finding rests on is `review-lenses.md`; what the author does with
+the failure it prevents. What a finding rests on is `review.md`; what the author does with
 one is `respond-to-pr-review`. This rule is about how a finding is communicated.
 
 ## Reviewer side
@@ -15,9 +15,10 @@ one is `respond-to-pr-review`. This rule is about how a finding is communicated.
   scenario invites a patch scoped to that scenario: the invariant is the requirement, the
   scenario is evidence. A fix satisfying the invariant closes every scenario; a fix satisfying
   the scenario spawns the next round.
-- **Give one complete fix shape — never a minimal variant alongside it.** When a quick fix and a
-  robust fix are both described, the minimal one gets taken, and the difference returns as the
-  next round's major. Signatures over prose where possible.
+- **Give one complete fix shape, and no minimal variant beside it.** A quick fix offered next to
+  the correct one is the one that ends up in the branch, and the difference comes back as the
+  next round's major; the reviewer names the correct shape only. Signatures over prose where
+  possible.
 - **Self-verify every major-class claim before posting** — by a direct read at the branch head,
   or by a minimal compile or run reproduction. A refuted major costs the author a round and the
   reviewer trust. A subagent's finding is a hypothesis until verified.

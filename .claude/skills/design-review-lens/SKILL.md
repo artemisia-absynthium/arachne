@@ -1,12 +1,12 @@
 ---
 name: design-review-lens
-description: The full design-review checklist (SOLID, Clean Architecture boundaries, GRASP, Clean Code hygiene, coupling laws, anti-over-engineering guardrails) for reviewing a diff or branch. Invoke for the design pass of the review before close (`rules/workflow/review-before-close.md`), or whenever performing a design, SOLID, or architecture review of code changes.
+description: The full design-review checklist (SOLID, Clean Architecture boundaries, GRASP, Clean Code hygiene, coupling laws, anti-over-engineering guardrails) for reviewing a diff or branch. Invoke when the owner asks for a refactor, or for a design, SOLID or architecture review of a diff, a branch or a design note.
 ---
 
 # Design Review Lens
 
 The comprehensive checklist for a design review pass, over a diff or over a design note before
-code exists (`workflow/review-lenses.md`). Every item is a question about the work, not a
+code exists (`workflow/review.md`). Every item is a question about the work, not a
 definition, and a finding names the principle and the consequence a caller or reader pays for it;
 sound work yields none, and that is the expected result. Type-level thresholds that count as automatic findings: a type
 exceeding ~300 lines or ~15 stored properties, holding state with two different
@@ -103,3 +103,10 @@ any finding that recommends adding: what does the addition let you delete?
   collaborator extraction from a god class is never over-engineering.
 - Principle of least astonishment: surprising behavior behind a conventional-looking API
   is a finding even when technically correct.
+
+**As a refactor**
+
+When the request is a refactor, the findings are the proposal: list what would change and why,
+grouped by principle, before changing anything. On the owner's go, apply one principle at a time
+with the project's verification green after each; what the owner strikes from the list stays as
+it is.

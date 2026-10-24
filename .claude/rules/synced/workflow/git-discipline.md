@@ -1,5 +1,5 @@
 ---
-description: The branch model is read from the repo's config, never assumed; push once when the changeset is final; rewrites gated by branch kind; a merged branch is deleted in the same step; docs-only diffs skip the PR
+description: The branch model is read from the repo's config, never assumed; fetch before starting on a shared branch and before every rebase; push once when the changeset is final; rewrites gated by branch kind; a merged branch is deleted in the same step; docs-only diffs skip the PR
 ---
 
 # Git discipline
@@ -19,13 +19,22 @@ branches refuse. Commit locally as work progresses; push once, when the changese
 the owner says so. A step that needs the remote — PR creation, a remote CI job — is where the
 workflow waits for that word, not an authorization in itself: green builds and passing suites
 cannot see rendered UI or real behaviour, so the owner's own check is the last verification
-before anything leaves the machine. Never chain commit and push by default. Review rounds are
+before anything leaves the machine. Review rounds are
 local: fix, re-run locally; on a clean re-run, squash the round-fix commits, then push once and
 open the PR on the owner's word — pushing per round litters the remote branch history. Once a
-PR is open, a received review is answered through `respond-to-pr-review`: the owner's approval
-of its response draft is the word for that round's push, given in advance for exactly that draft
-and void on any divergence, and in that draft the owner decides per remedy which ones their own
-check must see before the push.
+PR is open, a received review is answered through `respond-to-pr-review`: the owner reads the
+replies before anything is posted, and the round's push waits for their word like any other.
+
+## Fetch before starting on a shared branch, and before every rebase
+
+On a shared branch — the git-flow mainline branches, read from `git config --get-regexp
+'^gitflow\.branch'` — bring it up to date before the first edit when the last fetch is older
+than about an hour: `git fetch origin <base> && git merge --ff-only FETCH_HEAD` (the explicit form
+works on a dirty tree when the incoming files are disjoint; `git pull --ff-only` refuses under
+`pull.rebase`). A solo topic branch is refreshed by an explicit rebase when the author chooses,
+never by an ambient pull. A rebase fetches first, every time, and rebases onto the
+remote-tracking ref — `git fetch origin <base> && git rebase origin/<base>` — never onto the local
+base, which can sit behind `origin/<base>` even right after a fetch.
 
 ## History rewrites are gated by branch kind, not banned
 
@@ -36,8 +45,6 @@ check must see before the push.
   anything several people or CI track — are never rewritten or force-pushed. A clean mainline
   narrative comes from a squash or curated merge at PR time. A rewrite that cannot be done with
   certainty of breaking nothing is skipped.
-- Interactive rebase is unavailable in this environment; a plain `git rebase <base>` is the
-  tool.
 
 ## Finishing a branch: the merge and the delete are one step
 
@@ -52,6 +59,6 @@ the mainline, was left in the repo — "you are leaving junk after yourself".
 
 ## Docs-only diffs skip the PR ceremony
 
-A diff touching only documentation commits straight to the default branch (`change-tiers.md`,
-T0): the review passes exist for code, and documentation records are low-risk, so the ceremony
-is pure overhead. Anything code-bearing goes through the PR route and the review gates.
+A diff touching only documentation commits straight to the default branch: reviews exist for
+code, and documentation records are low-risk, so the ceremony is pure overhead. Anything
+code-bearing goes through the PR route.

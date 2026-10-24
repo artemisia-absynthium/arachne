@@ -25,9 +25,8 @@ asserted (`charter.md`).
   under test.
 - **Boundary claimed, boundary excluded.** A generator built to keep every value away from
   the exact threshold, beside a comment saying the test distinguishes `>` from `>=`.
-- **A mutation named but not killed.** A doc comment saying "fails if the guard is removed"
-  is a claim about the test. Apply the mutation once and confirm red before writing the
-  sentence.
+- **A mutation named that would not turn it red.** A doc comment saying "fails if the guard is
+  removed" is a claim about the test; write it only when reading the test shows it true.
 
 ## Comments are not tests
 
@@ -44,8 +43,10 @@ factual claim about the test framework. Verify it against an authoritative sourc
 in a header is worse than none, because it tells the next author the protection is already
 in place.
 
-## Run the negative control before you call it done
+## Naming the mutation is the check; running it is the owner's call
 
-Having written the test, revert the fix (or apply the mutation you named), run, and see red.
-This is the author's check, done at write time: a green run proves the test passes, not that
-it can fail.
+The mutation is named at write time, in the test's doc comment, and reading the test must show
+it would go red. Reverting the fix and running to see red is not done per test: it costs a build
+per control and has talked an author into "fixing" a surviving control by weakening the code. It
+is run when the owner asks for it, or for the property test of a stateful mechanism whose
+invariant nothing else pins.

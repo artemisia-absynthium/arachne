@@ -1,6 +1,6 @@
 ---
 name: swift-concurrency-review
-description: Dedicated Swift concurrency review pass over a diff or branch — actor reentrancy across await, CheckedContinuation discipline, terminal-state races, cancellation propagation, callback ordering, @unchecked Sendable justification. Invoke for the concurrency pass of a PR review, or after touching actors, continuations, async sequences, or background callbacks.
+description: Dedicated Swift concurrency review pass over a diff or branch — actor reentrancy across await, CheckedContinuation discipline, terminal-state races, cancellation propagation, callback ordering, @unchecked Sendable justification. Invoke when the owner asks for a concurrency review of a change touching actors, continuations, async sequences, or background callbacks.
 ---
 
 # Swift Concurrency Review
@@ -9,7 +9,7 @@ The Swift-concrete checklist for a dedicated concurrency pass over a branch diff
 is a bug class that has shipped past general review; the general design pass
 (`design-review-lens`) does not cover them. The same items apply to a design note before code
 exists — which state each actor owns, what is re-validated after each suspension, who resolves
-each continuation — per `workflow/review-lenses.md`.
+each continuation — per `workflow/review.md`.
 
 - **Actor reentrancy**: any state read before an `await` and used after it must be
   re-validated — the actor processed other work during the suspension. A guard checked

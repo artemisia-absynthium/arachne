@@ -28,8 +28,7 @@ Compare `totalTestCount` against the suite's known baseline: a shrunken count is
 silent non-execution, which no exit code reports.
 
 That comparison is the count's only use: it answers whether the tests ran. The figure is read by
-the check and goes nowhere else — not into a PR body, a commit message, a review or a document
-(`workflow/docs-record-decisions.md`).
+the check and goes nowhere else — not into a PR body, a commit message, a review or a document.
 
 ## Two tools, two counts — a baseline names its source
 
@@ -43,4 +42,4 @@ Both are correct; they measure different things. A baseline written down without
 tool produced it is a false alarm waiting to happen — a "shrunken count" that is only the other
 tool's count. When you record a baseline, or compare a run to one, name the tool
 (`xcresult functions` vs `MCP cases`), and keep the baseline where the check reads it, not in
-prose (`workflow/docs-record-decisions.md`).
+prose.

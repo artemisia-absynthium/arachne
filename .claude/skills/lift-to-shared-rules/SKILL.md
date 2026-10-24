@@ -6,8 +6,6 @@ description: Persist a generalizable coding pattern, constraint, or convention i
 
 Persist a generalizable coding pattern into the shared rules repo, verify coherence across all existing rules, show the diff with a filled-in acceptance checklist, commit locally on confirmation, and push (owner) or open the PR (contributor) only on a separate explicit go — the repo is public, so nothing leaves the machine without the user's word.
 
-Invoke this skill whenever a pattern, constraint, or convention emerges that should apply across all projects, not just the current one.
-
 ## Step 0 — Detect mode
 
 Run the following checks and set mode before doing anything else:
@@ -154,9 +152,7 @@ git -C "$CLAUDE_SETUP_PATH" add -A
 git -C "$CLAUDE_SETUP_PATH" commit -m "<message>"
 ```
 
-Then STOP and report: "committed locally — say the word and I'll push." The push runs only on
-an explicit instruction ("push", "ship it"), never as a continuation of the Step 6 confirmation:
-the repo is public, and the anonymization review is the last chance before publication.
+Then stop and report "committed locally"; the repo is public, and the push is its own go.
 
 ```bash
 git -C "$CLAUDE_SETUP_PATH" push
@@ -200,8 +196,7 @@ On confirmation:
    git -C "$WORK_DIR" add -A
    git -C "$WORK_DIR" commit -m "<message>"
    ```
-   Report "committed locally — say the word and I'll push and open the PR." Continue only on
-   an explicit instruction.
+   Report "committed locally"; the push and the PR are their own go.
 
 7. **Push and open the PR**, filling in the template from Step 6:
    ```bash

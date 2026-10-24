@@ -5,6 +5,47 @@ paths:
 
 # SwiftUI Conventions
 
+## App entry point — the SwiftUI `App` life cycle, only
+
+Every app starts from `@main struct …: App` and its scenes — throwaway probes and sample projects
+included. Never `UIApplicationMain`, a `@main` `UIApplicationDelegate`, or an app delegate that
+creates its own `UIWindow`.
+
+```swift
+// ✅
+@main
+struct MyApp: App {
+    @UIApplicationDelegateAdaptor private var appDelegate: MyAppDelegate   // only for a callback below
+    var body: some Scene {
+        WindowGroup { RootView() }
+    }
+}
+
+// ❌ — no scene life cycle: the app fails to launch on the 27 SDKs
+@main
+final class AppDelegate: UIResponder, UIApplicationDelegate {
+    var window: UIWindow?
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        window = UIWindow(frame: UIScreen.main.bounds)
+        // …
+        return true
+    }
+}
+```
+
+A `UIApplicationDelegate` survives only behind `@UIApplicationDelegateAdaptor`
+(`@NSApplicationDelegateAdaptor` on macOS), for app-level callbacks SwiftUI has no equivalent for
+(e.g. the remote-notification device token). Foreground and background transitions are read from
+`scenePhase`, never from the delegate.
+
+Rationale: the app-delegate life cycle is no longer merely superseded — it does not launch. Apple:
+"Beginning in iOS 27, iPadOS 27, Mac Catalyst 27, tvOS 27, and visionOS 27, apps built with the
+latest SDK must adopt the scene-based life cycle or they fail to launch" (UIKit, *Transitioning to
+the UIKit scene-based life cycle*). Observed on an iOS 27.0 simulator: the process traps
+(`EXC_BREAKPOINT` in UIKitCore's `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`)
+while UIKit creates its first scene — a crash report, not a log line, so nothing hints at the cause.
+
 ## View structure
 
 - One view per file. Large views split into private subviews in the same file.
