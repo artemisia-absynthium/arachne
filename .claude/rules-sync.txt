@@ -1,6 +1,8 @@
-# Sync config — managed by setup-project-ai skill
-# Edit this file to change which rule categories are synced into .claude/rules/synced/.
-# Category names match directories under rules/ in artemisia-absynthium/claude-setup.
+# AI Guidelines Sync — category config
+# One category per line.
+# Comment out a line (# category) to explicitly exclude it from auto-detection.
+# Available: swift, ios, mac, visionos, xcode, android, web
+# The 'workflow' category is always synced regardless of this file.
 swift
 visionos
 xcode
