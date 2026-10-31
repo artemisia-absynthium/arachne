@@ -23,6 +23,13 @@ Everything else — the maintainers' contracts, the design reasons, the script i
 home that is not the README: `CLAUDE.md`, `.claude/rules/`, or a document the reader is
 pointed to only when it exists.
 
+**The reader works in the IDE** — Xcode, Android Studio, WebStorm — not in the terminal. Build,
+run and test steps name the IDE's way: the scheme and run destination, the run configuration, the
+test navigator or the gutter, the build tool's own panel. A command appears only where the IDE has
+no equivalent (a script, a fixture regeneration). The CLI forms an agent or CI uses — the
+command-line build and test invocations, destination resolution — live in `CLAUDE.md`, where the
+agent reads them.
+
 ## 2. One test per sentence
 
 *Which action of the reader needs this sentence?* Install, run, configure, verify, contribute,
@@ -49,3 +56,7 @@ an ownership-and-deletion contract, a seven-step account of what the setup scrip
 action's internals — written in the developer's role over months of edits, each one true. The
 consumer needs the one-command setup, the categories, the deploy key and how to contribute: 90
 lines. The rest moved to a maintainer rule the consumer never loads.
+
+**Why (owner, 2026-10-27):** a docs sweep moved an app's command-line build fallback out of its
+`CLAUDE.md` and into the README as the contributor's build and test steps; the team builds and
+tests in the IDE, so the README read as a terminal manual written for the agent.
