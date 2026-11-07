@@ -1,51 +1,46 @@
 ---
-description: One architect thread, delegated parts — what is delegated (output-heavy commands, mechanical multi-file changes), what stays in the main thread, and the brief and return contract every delegation states
+description: Builds and tests always go to an agent; each delegate gets the cheapest model that fits its task.
 ---
 
-# Delegation — one architect thread, delegated parts
+# Delegation
 
-The main thread holds the whole picture and makes every design decision. Work that floods
-context or is mechanical is delegated with a brief and a return contract, and every return is
-read against the charter before it is accepted. This rule is the standing authorization to use
-subagents for the cases below.
+When to use a subagent, a fork or another session is the main thread's judgment, using the
+harness's own guidance. This rule adds only the cases that judgment gets wrong, and the model
+each delegate runs on.
 
-## Context hygiene — the rule behind the rules
+## Always delegated, however small
 
-A compaction is a symptom: output that belonged in an agent was read in the main thread. Target
-per task: zero.
+- **Builds and test runs**, every one, including the single "does it compile" inside an edit
+  loop. The delegate returns the diagnostics as `path:line: message` and the run's verdict.
+  Each build looks too small to hand off; the loop of them is what fills the context and forces
+  compactions.
+- **Once a check is delegated, the main thread does not run it too** until the result is back:
+  a second run of the same check reports on code that has moved.
+- Log, result-bundle and dependency audits, and documentation lookups whose sources are many pages.
 
-## Triggers — keyed on events, not on judgment
+## Fork or fresh agent
 
-- **Output-heavy commands** — builds, test runs, log and result-bundle parsing, documentation
-  and SDK verification, dependency audits → a fresh agent with an exact brief and return
-  contract. It returns verdicts — the test-count check green or shrunk per suite, the build
-  warning-free — diagnostics as `path:line: message`, and citations; never totals. A verdict
-  lives in the conversation and leaves it nowhere: not a PR body, a commit message, a review or
-  a document. The main thread never reads a build log.
-- **Mechanical multi-file changes** — renames, API adoption, a refactor with a stated rule → an
-  agent that inherits the full context, in a worktree. The main thread reviews the diff against
-  the charter and the tests; it does not produce the diff.
-- **A design note is drafted** → the four questions in `planning-discipline`, answered in the
-  main thread before any reviewer sees the note: a review evaluates the candidate that was
-  generated and cannot supply the one that was not.
-- **Any unplanned event** → a diagnosis first (`plan-execution.md`); no delegation and no fix
-  before the diagnosis exists.
+A fork inherits the whole conversation and runs on the session's model; a fresh agent knows
+only its brief and can run on a cheaper model. Fork when the context a brief would lose
+matters to the result; start fresh when a brief carries it. **A review is never a fork:** an
+inherited conversation anchors the reviewer on the author's reasoning.
 
-## What stays in the main thread
+## Mechanical multi-file changes
 
-Design-bearing code, invariant enforcement points, anything whose correctness depends on
-holding several concerns at once. Delegating these moves the whole picture to nowhere.
+A rename, an API adoption, a refactor with a stated rule: an agent in its own worktree, whose
+diff is read before it is merged.
 
-## Brief and return contract — every delegation states both
+## Model per delegate
 
-```
-Task: <one sentence>. Charter lines in force: <copied, not referenced>.
-Acceptance: <the lens or skill by name, the rules in force, the tests that must pass, the
-invariants touched>.
-Return: <exact shape — e.g. the test-count check's verdict per suite; every diagnostic as
-path:line: message; nothing else>. Do not return: <logs, prose, file dumps>.
-Model: <per role — review.md for reviewers, planning-discipline for explorers>.
-```
+| Model | Task shape | Examples |
+|---|---|---|
+| `haiku` | Mechanical: known target, known output, no judgment between; `effort: low` | run a command and return its verdict; a lookup in one named document |
+| `sonnet` | Standard work from a complete brief | explorers; builds and test runs; a specified change; tests to a stated spec |
+| `opus` | Judgment under a lens, or design-bearing work | reviewers; a design alternative; a diagnosis with an unknown cause |
+| `fable` | The hardest judgment, where an `opus` return failed on judgment or the owner asks | a contested architectural decision; a diagnosis that two `opus` passes could not settle |
 
-Every brief to a coding agent names the rules in force as acceptance criteria and carries the
-charter lines it must keep true; every return is read against them (`charter.md`).
+- Every spawn names its model, by alias.
+- Between two tiers, take the lower one and tighten the brief. A tier is raised when a return
+  failed on judgment, never on missing information: that is a brief defect.
+- `fable` may bill to usage credits; where an advisor model is configured, consulting it at a
+  decision point is usually cheaper than delegating the whole task to `fable`.

@@ -29,6 +29,6 @@ That is the difference between a charter and a cage.
 `.gitignore` and **no frontmatter**: an unscoped rule is re-read from disk after every
 compaction, which is what keeps the charter in context without anyone restating it, and a
 `PreToolUse` hook on `git commit` reads it at the moment it matters. The plan's first line links
-it. It is copied into every brief handed to a subagent, and every return is read against its
-lines (`delegation.md`). It is discarded with the plan; its residue is the commit and the pull
-request. *Done* (`terminology.md`) means its lines hold, with evidence.
+it. The charter's lines go into a coding agent's brief, and its return is read against them.
+It is discarded with the plan; its residue is the commit and the pull request. *Done*
+(`terminology.md`) means its lines hold, with evidence.

@@ -6,10 +6,9 @@ paths:
 
 # Xcode MCP Tools
 
-Build, test, preview, and diagnostics go through the Xcode MCP tools; `xcodebuild` is the
-fallback only when the MCP is genuinely unavailable (see the tool-fallback rule). Plain
-filesystem tools are fine for reading and editing existing Swift files — the operations
-below are where the MCP is required.
+Plain filesystem tools are fine for reading and editing existing Swift files — the operations
+below are where the MCP is required. Building and testing through the MCP, and opening the
+workspace it needs, are `mcp-build-and-test.md`.
 
 ## Adding, moving, deleting files
 
@@ -30,24 +29,8 @@ server's tool list is the authority on which exist.
 
 ## Gotchas
 
-- **Workspace approval**: the server refuses every tool until the workspace has been opened
-  through the MCP with the absolute `.xcworkspace`/`.xcodeproj` path — that call is what prompts
-  the user to approve the agent for the project (once per project). Which identifier the other
-  tools then take, and under which parameter name, is in their schemas — read them, never a
-  rule file: the server changes them between Xcode releases and a copy here rots.
-- **No scheme parameter — the active scheme slips.** `BuildProject` and `RunAllTests` build the
-  *active scheme*, and there is no way to name one per call. Xcode resets the active scheme to the
-  first scheme alphabetically (often a package dependency's scheme) whenever the shared
-  `.xcscheme` files are rewritten on disk — observed after `git rebase` and `git checkout` touching
-  them. Symptom: a "successful" one-second build whose log first line names the wrong
-  scheme and that compiled none of the edited files. Switch with `XcodeSwitchScheme` right before
-  every build or test run, then confirm the build log's first line names the intended scheme.
-  Switching also restores that scheme's remembered run destination, so re-check the destination
-  too (next bullet). For what rewrites `.xcscheme` files from the other direction — GUI edits
-  clobbering hand edits — see `schemes.md`.
 - `XcodeMakeDir` fails with an unknown-project-structure error unless `XcodeLS` has run
   earlier in the same session.
 - **Git staging**: `XcodeUpdate` and `XcodeWrite` do NOT auto-stage their changes — `git add`
   the modified files explicitly before committing. `XcodeRM` stages deletions automatically;
   the asymmetry is easy to miss.
-- **`BuildProject` builds Xcode's active run destination**, whatever it currently is. With a physical device selected in Xcode's UI, the build compiles the `iphoneos` slice and reports success while the simulator product goes stale — a later `simctl install` then ships an old binary, and runtime verification silently exercises yesterday's code. Before trusting a simulator install after an MCP build, confirm the product is fresh (file timestamp on the app binary is the reliable check; `strings`-grepping for a new literal is not — Swift literals don't always survive as contiguous C strings). If the destination can't be confirmed in Xcode, build the simulator slice explicitly via CLI, with `-scheme` and a destination resolved to a UDID as `test-destinations.md` prescribes — this is a tool-capability gap, not an MCP defect, so the fallback is legitimate.

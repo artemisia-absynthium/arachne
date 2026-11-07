@@ -13,14 +13,28 @@ Run the following checks and set mode before doing anything else:
 ```bash
 echo "${CLAUDE_SETUP_PATH:-UNSET}"
 [[ -n "$CLAUDE_SETUP_PATH" && -d "$CLAUDE_SETUP_PATH/.git" ]] && echo "DIR: OK" || echo "DIR: MISSING"
-git -C "$CLAUDE_SETUP_PATH" remote -v 2>/dev/null | head -4
-git -C "$CLAUDE_SETUP_PATH" push --dry-run 2>&1 | tail -1
+url=$(git -C "$CLAUDE_SETUP_PATH" remote get-url --push origin 2>/dev/null); echo "URL: $url"
+host=$(printf '%s' "$url" | sed -nE 's#^(ssh://)?git@([^:/]+)[:/].*#\2#p')
+owner=$(printf '%s' "$url" | sed -nE 's#^(ssh://)?git@[^:/]+[:/]([^/]+)/.*#\2#p')
+login=$(ssh -T -o BatchMode=yes "git@$host" 2>&1 | sed -nE 's/^Hi ([^!]+)!.*/\1/p')
+echo "OWNER: $owner  SSH LOGIN: ${login:-NONE}"
 ```
 
-- **Owner mode**: `CLAUDE_SETUP_PATH` is set, the directory exists, and the dry-run push succeeds (exit 0 / "Everything up-to-date"). Work is done directly in `$CLAUDE_SETUP_PATH`.
-- **Contributor mode**: any condition fails — env var unset, directory missing, or dry-run push is rejected. State which condition triggered contributor mode, then proceed with the fork/PR flow (Step 7b).
+- **Owner mode**: `CLAUDE_SETUP_PATH` is set, the directory exists, the push URL is SSH, and the
+  SSH login equals the URL's owner (compared case-insensitively — GitHub logins are). Work is done
+  directly in `$CLAUDE_SETUP_PATH`.
+- **Contributor mode**: any condition fails — env var unset, directory missing, an HTTPS push URL,
+  no `Hi <login>!` reply, or a login that is not the owner. State which condition triggered
+  contributor mode, then proceed with the fork/PR flow (Step 7b).
 
-Do not use `gh api` to check push permission — it reads the permission field for the authenticated `gh` account, which may differ from the SSH identity used by the repo's git remote.
+`ssh -T` exits 1 even when authentication succeeds (GitHub shell access is refused by design), so
+read the reply, never the exit status. It asks the identity the remote actually uses, through the
+host alias in its URL when there is one.
+
+Never probe with `git push --dry-run`: it is a push in every gate's eyes, so a push hook or an
+auto-mode classifier refuses it and the mode is never detected. Do not use `gh api` either — it
+reads the permission field for the authenticated `gh` account, which may differ from the SSH
+identity used by the repo's git remote.
 
 ## Step 1 — Identify target
 

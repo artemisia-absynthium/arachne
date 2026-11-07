@@ -18,8 +18,8 @@ The four questions are answered against the code as it is, so two things come fi
 **Explore.** Explorers return the files that matter — the ones a design would touch, their
 callers, the in-house precedent — and every file they name is read in the main thread before
 question 2 is answered: a summary of a file is not the file, and "what each existing piece is
-for" is answered from its source. Explorers and other output-heavy delegates (builds, test counts,
-documentation checks) run on `sonnet`; the main thread keeps the session's model.
+for" is answered from its source. Explorers run on `sonnet`, per the model table in
+`delegation.md`; the main thread keeps the session's model.
 
 **Ask.** List every ambiguity, edge case, integration point, scope boundary and underspecified
 behaviour as concrete questions, and wait for the answers before any design exists: a question
