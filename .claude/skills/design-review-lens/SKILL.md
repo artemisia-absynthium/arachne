@@ -1,6 +1,7 @@
 ---
 name: design-review-lens
 description: The full design-review checklist (SOLID, Clean Architecture boundaries, GRASP, Clean Code hygiene, coupling laws, anti-over-engineering guardrails) for reviewing a diff or branch. Invoke when the owner asks for a refactor, or for a design, SOLID or architecture review of a diff, a branch or a design note.
+effort: high
 ---
 
 # Design Review Lens

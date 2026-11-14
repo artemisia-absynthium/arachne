@@ -1,6 +1,7 @@
 ---
 name: planning-discipline
 description: Four questions before any design exists (the problem without type names; what each existing piece is for; old against new at the caller's boundary; alternatives including replace-or-delete), then type-level design (SOLID/SRP), invariant-first planning, named precedents, and complexity budgets. Invoke when a change cannot be described in one sentence — a stateful mechanism (state machine, cache, sync/retry, lifecycle), a public or cross-module symbol, a new type — and when the owner asks for a design note.
+effort: high
 ---
 
 # Planning discipline — four questions, then type-level design + invariant-first

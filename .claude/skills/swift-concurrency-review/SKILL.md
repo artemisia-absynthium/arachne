@@ -1,6 +1,7 @@
 ---
 name: swift-concurrency-review
 description: Dedicated Swift concurrency review pass over a diff or branch — actor reentrancy across await, CheckedContinuation discipline, terminal-state races, cancellation propagation, callback ordering, @unchecked Sendable justification. Invoke when the owner asks for a concurrency review of a change touching actors, continuations, async sequences, or background callbacks.
+effort: high
 ---
 
 # Swift Concurrency Review

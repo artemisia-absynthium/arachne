@@ -1,12 +1,12 @@
 ---
-description: Builds and tests always go to an agent; each delegate gets the cheapest model that fits its task.
+description: Builds and tests always go to an agent; each delegate gets the cheapest model and effort that fit its task.
 ---
 
 # Delegation
 
 When to use a subagent, a fork or another session is the main thread's judgment, using the
 harness's own guidance. This rule adds only the cases that judgment gets wrong, and the model
-each delegate runs on.
+and effort each delegate runs on.
 
 ## Always delegated, however small
 
@@ -30,17 +30,30 @@ inherited conversation anchors the reviewer on the author's reasoning.
 A rename, an API adoption, a refactor with a stated rule: an agent in its own worktree, whose
 diff is read before it is merged.
 
-## Model per delegate
+## Model and effort per delegate
 
-| Model | Task shape | Examples |
-|---|---|---|
-| `haiku` | Mechanical: known target, known output, no judgment between; `effort: low` | run a command and return its verdict; a lookup in one named document |
-| `sonnet` | Standard work from a complete brief | explorers; builds and test runs; a specified change; tests to a stated spec |
-| `opus` | Judgment under a lens, or design-bearing work | reviewers; a design alternative; a diagnosis with an unknown cause |
-| `fable` | The hardest judgment, where an `opus` return failed on judgment or the owner asks | a contested architectural decision; a diagnosis that two `opus` passes could not settle |
+| Model | Task shape | Effort | Examples |
+|---|---|---|---|
+| `haiku` | Mechanical: known target, known output, no judgment between | `low`; `medium` for a lookup | run a command and return its verdict; a lookup in one named document |
+| `sonnet` | Standard work from a complete brief | `medium`; `high` for long or hard work | explorers; builds and test runs; a specified change; tests to a stated spec |
+| `opus` | Judgment under a lens, or design-bearing work | `medium`; `high` for reviewers and a diagnosis with an unknown cause | reviewers; a design alternative; a diagnosis with an unknown cause |
+| `fable` | The hardest judgment, where an `opus` return failed on judgment or the owner asks | `high` | a contested architectural decision; a diagnosis that two `opus` passes could not settle |
 
-- Every spawn names its model, by alias.
+- Every spawn names its model, by alias, and its effort, by level. An omitted effort can carry a
+  level the session raised into a delegate on the same model.
 - Between two tiers, take the lower one and tighten the brief. A tier is raised when a return
   failed on judgment, never on missing information: that is a brief defect.
 - `fable` may bill to usage credits; where an advisor model is configured, consulting it at a
   decision point is usually cheaper than delegating the whole task to `fable`.
+- `CLAUDE_CODE_EFFORT_LEVEL` overrides every level a spawn or a skill names, so it stays unset.
+
+## Effort in a skill
+
+A skill whose own work is judgment (a review lens, a planning pass) sets `effort: high` in its
+frontmatter. The level holds for the rest of the turn and the next prompt returns the session to
+its own; neither change rewrites the prompt cache (measured on the main thread: cache reads stayed
+whole across the raise, the lowering and the reset).
+
+- **Raise only.** A lowered level also covers the work the turn does after the skill.
+- **Never `effort: medium`.** An unset level leaves the session's own alone; a set one replaces it,
+  including a level the owner raised by hand.

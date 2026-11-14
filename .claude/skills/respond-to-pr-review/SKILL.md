@@ -1,6 +1,7 @@
 ---
 name: respond-to-pr-review
 description: Act on a received PR review — read every thread from the objects that hold it, decide per finding whether the approach can have the property or only a patch can, show the owner the replies before anything is posted, fix, then reply and resolve in one pass and re-request. Invoke when a review arrives (a CHANGES_REQUESTED state, new review threads, "the PR has been reviewed"), before replying to or fixing anything.
+effort: high
 ---
 
 # Respond to a PR review
