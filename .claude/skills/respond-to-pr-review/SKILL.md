@@ -12,6 +12,11 @@ left unresolved, which block the merge under branch protection and read as pendi
 
 ## 1. Read everything, from the objects that hold it
 
+The objects and commands in this skill are GitHub's (the remote's host, `git remote get-url origin`).
+On another host (Bitbucket, GitLab), read the same three kinds of object — review state, resolvable
+inline threads, plain comments — through that host's tool, and resolve threads there; steps 2 and 3
+apply unchanged.
+
 A review lives in several GitHub objects, and only the inline threads can be resolved:
 
 | Object | Where | Resolvable |

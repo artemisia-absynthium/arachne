@@ -1,5 +1,5 @@
 ---
-description: The branch model is read from the repo's config, never assumed; fetch before starting on a shared branch and before every rebase; push once when the changeset is final; rewrites gated by branch kind; a merged branch is deleted in the same step; docs-only diffs skip the PR
+description: The branch model is read from the repo's config, never assumed; fetch before starting on a shared branch and before every rebase; push once when the changeset is final; rewrites gated by branch kind; on GitHub, PRs that build on each other are linked into a stack when opened and merge from the top; a merged branch is deleted in the same step; docs-only diffs skip the PR
 ---
 
 # Git discipline
@@ -45,6 +45,26 @@ base, which can sit behind `origin/<base>` even right after a fetch.
   anything several people or CI track — are never rewritten or force-pushed. A clean mainline
   narrative comes from a squash or curated merge at PR time. A rewrite that cannot be done with
   certainty of breaking nothing is skipped.
+
+## On GitHub, pull requests that build on each other are a stack
+
+This section applies only where the remote's host is GitHub (`git remote get-url origin`); other
+hosts have their own stacking, or none, and keep their own conventions. There, when pull requests
+build on each other — each one's base is the branch of the one below it — they are linked into a
+GitHub stack as they are opened, never left as a chain of bases for someone to stack by hand. Each PR is opened as usual, then `gh stack link <bottom> … <top>` (PR numbers,
+bottom to top; the `github/gh-stack` extension) runs under the same go as opening them; a PR opened
+later on top is appended the same way. Two consequences change how the stack is planned:
+
+- Every PR in a stack is judged by the rules of the **stack's base** — typically the integration
+  branch — whatever branch it directly targets: each needs the approvals that base requires, and
+  merge requirements cannot be bypassed.
+- A stack merges **from the top**: merging a PR merges every PR below it in one all-or-nothing
+  operation (`gh stack merge <pr>`). It is never planned as bottom-up merges one at a time.
+
+**Why:** a long chain of PRs was opened one by one against each other's branches. A person had to
+stack it by hand; linking put every PR under the integration branch's review rule at once, so they
+read "review required" again; and a bottom-up merge was proposed for a stack that merges only from
+the top. Source: GitHub Docs, "About stacked pull requests" and the stacked pull requests reference.
 
 ## Finishing a branch: the merge and the delete are one step
 

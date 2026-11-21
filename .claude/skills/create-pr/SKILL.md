@@ -90,6 +90,9 @@ find . docs .github -maxdepth 1 -iname 'pull_request_template.*' 2>/dev/null
   something real to put in it; keep the parts that apply and remove the rest. If it asks for
   screenshots, they belong only when the change is visual — a view, a layout, a style — and
   the tooling offers a capture (a device or simulator); in every other case skip the section.
+  When they belong, save the body as a file beside the captures and reference each one by its
+  relative path, `![<what it shows>](./after.png)`, where the template places it; step 7
+  uploads them.
 - **Otherwise** use this conventional structure:
 
   ```markdown
@@ -119,6 +122,20 @@ gh pr create \
 BODY
 )"
 ```
+
+With screenshots, pass the body file and one `--attach` per capture instead of `--body`:
+`--body-file <dir>/body.md --attach <dir>/before.png --attach <dir>/after.png`. `gh` uploads each
+file and rewrites the body's reference to it into the hosted URL (`gh help pr create`;
+`gh pr edit` takes the same flag for a PR that already exists). It is the only route: never commit
+the captures to the repository, where they stay in its history for good, and never use an
+extension that uploads with a browser session cookie — that hands a tool the user's GitHub login.
+If the installed `gh` lacks `--attach`, open the PR without the section and tell the user the
+screenshots are theirs to add.
+
+When `<base>` is another open PR's branch, this PR builds on it: link it into that stack right after
+creating it — `gh stack link <bottom> … <this PR>`, or `gh stack link <stack number> <this PR>` to
+append to an existing stack (`workflow/git-discipline.md` § On GitHub, pull requests that build on
+each other are a stack).
 
 ## 8. Return the PR URL to the user
 
